@@ -325,48 +325,49 @@ struct smmu_glbl_rs1_hw {
 #define SMMUV2_TCR_PS_48B          (0x5 << SMMUV2_TCR_PS_OFF)
 #define SMMUV2_TCR_PS_52B          (0x6 << SMMUV2_TCR_PS_OFF)
 
-struct smmu_cntxt_hw {
-    uint32_t SCTLR;
-    uint32_t ACTLR;
-    uint32_t RESUME;
-    uint8_t res1[0x20 - 0xc];
-    uint64_t TTBR0;
-    uint8_t res2[0x30 - 0x28];
-    uint32_t TCR;
-    uint8_t res3[0x58 - 0x34];
-    uint32_t FSR;
-    uint32_t FSRRESTORE;
-    uint64_t FAR;
-    uint32_t FSYNR0;
-    uint32_t FSYNR1;
-    uint64_t IPAFAR;
-    uint8_t res4[0x630 - 0x78];
-    uint64_t TLBIIPAS2;
-    uint64_t TLBIIPAS2L;
-    uint8_t res5[0x7f0 - 0x640];
-    uint32_t TLBSYNC;
-    uint32_t TLBSTATUS;
-    uint8_t res6[0xe00 - 0x7f8];
-    uint32_t PMEVCNTRm;
-    uint8_t res7[0xe80 - 0xe3c];
-    uint32_t PMEVTYPERm;
-    uint8_t res8[0xf00 - 0xebc];
-    uint32_t PMCFGR;
-    uint32_t PMCR;
-    uint8_t res9[0xf20 - 0xf08];
-    uint32_t PMCEID0;
-    uint32_t PMCEID1;
-    uint8_t res10[0xf40 - 0xf28];
-    uint32_t PMCNTENSET;
-    uint32_t PMCNTENCLR;
-    uint32_t PMINTENSET;
-    uint32_t PMINTENCLR;
-    uint32_t PMOVSCLR;
-    uint8_t res11[0xf58 - 0xf54];
-    uint32_t PMOVSSET;
-    uint8_t res12[0xfb8 - 0xf5c];
-    uint32_t PMAUTHSTATUS;
-    uint8_t res13[];
+#define SMMMU_MAX_GROUP_CNTRS      (15)
+struct smmu_cntxt_hw {          
+    uint32_t SCTLR;                                 // 0x00000
+    uint32_t ACTLR;                                 // 0x00004
+    uint32_t RESUME;                                // 0x00008
+    uint8_t res1[0x20 - 0xc];                       // 0x0000C
+    uint64_t TTBR0;                                 // 0x00020
+    uint8_t res2[0x30 - 0x28];                      // 0x00028
+    uint32_t TCR;                                   // 0x00030
+    uint8_t res3[0x58 - 0x34];                      // 0x00034
+    uint32_t FSR;                                   // 0x00058
+    uint32_t FSRRESTORE;                            // 0x0005C
+    uint64_t FAR;                                   // 0x00060
+    uint32_t FSYNR0;                                // 0x00068
+    uint32_t FSYNR1;                                // 0x0006C
+    uint64_t IPAFAR;                                // 0x00070
+    uint8_t res4[0x630 - 0x78];                     // 0x00078
+    uint64_t TLBIIPAS2;                             // 0x00630
+    uint64_t TLBIIPAS2L;                            // 0x00638
+    uint8_t res5[0x7f0 - 0x640];                    // 0x00640
+    uint32_t TLBSYNC;                               // 0x007F0
+    uint32_t TLBSTATUS;                             // 0x007F4
+    uint8_t res6[0xe00 - 0x7f8];                    // 0x007F8
+    uint32_t PMEVCNTRm[SMMMU_MAX_GROUP_CNTRS];      // 0x00E00
+    uint8_t res7[0xe80 - 0xe3c];                    // 0x00E3C
+    uint32_t PMEVTYPERm[SMMMU_MAX_GROUP_CNTRS];     // 0x00E80
+    uint8_t res8[0xf00 - 0xebc];                    // 0x00EBC
+    uint32_t PMCFGR;                                // 0x00F00
+    uint32_t PMCR;                                  // 0x00F04
+    uint8_t res9[0xf20 - 0xf08];                    // 0x00F08
+    uint32_t PMCEID0;                               // 0x00F20
+    uint32_t PMCEID1;                               // 0x00F24
+    uint8_t res10[0xf40 - 0xf28];                   // 0x00F28
+    uint32_t PMCNTENSET;                            // 0x00F40
+    uint32_t PMCNTENCLR;                            // 0x00F44
+    uint32_t PMINTENSET;                            // 0x00F48
+    uint32_t PMINTENCLR;                            // 0x00F4C
+    uint32_t PMOVSCLR;                              // 0x00F50
+    uint8_t res11[0xf58 - 0xf54];                   // 0x00F54
+    uint32_t PMOVSSET;                              // 0x00F58
+    uint8_t res12[0xfb8 - 0xf5c];                   // 0x00F5C
+    uint32_t PMAUTHSTATUS;                          // 0x00FB8
+    uint8_t res13[];                                // 0x00FBC
 } __attribute__((__packed__, __aligned__(PAGE_SIZE)));
 
 typedef deviceid_t streamid_t;
