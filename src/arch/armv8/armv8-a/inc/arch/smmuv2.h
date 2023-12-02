@@ -385,4 +385,11 @@ streamid_t smmu_sme_get_mask(size_t sme);
 bool smmu_sme_is_group(size_t sme);
 bool smmu_compatible_sme_exists(streamid_t mask, streamid_t id, size_t ctx, bool group);
 
+/* SMMU Performance Monitor Unit (PMU)*/
+
+/* SMMU Performance Monitors Extension Event Classes */
+    /* Cycle */
+    /* TLB */
+    /* Access */
+
 #endif
