@@ -389,6 +389,9 @@ bool smmu_compatible_sme_exists(streamid_t mask, streamid_t id, size_t ctx, bool
 
 /* SMMU Performance Monitors Extension Event Classes */
     /* Cycle */
+#define SMMU_PME_CYCLE_COUNT        0x0000      // Cycle count, occurs every SMMU clock cycle
+#define SMMU_PME_CYCLE_COUNT_64     0x0001      // Cycle count divided by 64 event, occurs every 64th SMMU clock cycle
+
     /* TLB */
     /* Access */
 
