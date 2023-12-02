@@ -393,6 +393,10 @@ bool smmu_compatible_sme_exists(streamid_t mask, streamid_t id, size_t ctx, bool
 #define SMMU_PME_CYCLE_COUNT_64     0x0001      // Cycle count divided by 64 event, occurs every 64th SMMU clock cycle
 
     /* TLB */
+#define SMMU_PME_TLB_ENTRY_ALLOC    0x0008      // TLB Entry Allocated, occurs when an SMMU allocates a TLB entry to load a translation
+#define SMMU_PME_TLB_ENTRY_READ     0x0009      // TLB Entry Allocated for a Read or far-atomic
+#define SMMU_PME_TLB_ENTRY_WRITE    0x000A      // TLB Entry Allocated for a Write
+
     /* Access */
 
 #endif
