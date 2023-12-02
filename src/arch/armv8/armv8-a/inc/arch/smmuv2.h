@@ -398,5 +398,8 @@ bool smmu_compatible_sme_exists(streamid_t mask, streamid_t id, size_t ctx, bool
 #define SMMU_PME_TLB_ENTRY_WRITE    0x000A      // TLB Entry Allocated for a Write
 
     /* Access */
+#define SMMU_PME_ACC                0x0010      // Access, occurs when an SMMU processes a new transaction
+#define SMMU_PME_ACC_READ           0x0011      // Access Read
+#define SMMU_PME_ACC_WRITE          0x0012      // Access Write
 
 #endif
