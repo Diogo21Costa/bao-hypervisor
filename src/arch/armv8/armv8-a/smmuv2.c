@@ -344,3 +344,56 @@ void smmu_write_s2c(size_t sme, size_t ctx_id)
     }
     spin_unlock(&smmu.sme_lock);
 }
+
+void smmu_setup_event(size_t counter, size_t event){
+    // 1. Set evente type
+    smmu_set_event_type(counter, event);
+
+    // 2. Set counter
+    smmu_set_event_cntr(counter, UINT32_MAX);
+    
+    // 3. Set IRQ callback (optional)
+    smmu_pmu_define_irq_callback(counter, smmu_irq_handler);
+
+    // 4. Clear counter overflows
+    smmu_event_ctr_ovf_clr(counter);
+    // 5. Enable the IRQ -> PMINTENCLRx, Performance Monitors Interrupt Enable Clear registers
+}
+
+
+
+void smmu_events_init(){
+    
+    if((cpu.mem_throt.counter_id = events_cntr_alloc()) == ERROR_NO_MORE_EVENT_COUNTERS)
+	{
+		ERROR("No more event counters!");
+	}
+    // 1. Setup events
+    // 2. Enable events handling
+    // 3. Enable events counter -> PMCNTENSETx, Performance Monitors Count Enable Set registers
+}
+
+
+
+void smmu_pmu_define_irq_callback(size_t counter, irq_handler_t handler){
+    interrupts_reserve(SMMU_IRQ_ID, handler);
+    interrupts_arch_enable(SMMU_IRQ_ID, true);
+
+    // uint32_t x = counter / 32;
+    // uint32_t j = counter % 32;
+
+    // uint32_t i = (x * 32) + j;
+
+    smmu.hw.cntxt->PMINTENSET = counter;
+}
+
+void smmu_irq_handler(irqid_t id){
+    uint32_t pmovsclr = smmu.hw.cntxt->PMOVSCLR;
+
+    pmovsclr = 0;   //dummy clean - clean all overflow flags
+
+    smmu.hw.cntxt->PMOVSCLR = pmovsclr;
+    smmu_set_event_cntr(0, UINT32_MAX); // dummy reload
+
+    printk("SMMU Interrupt!\n");
+}

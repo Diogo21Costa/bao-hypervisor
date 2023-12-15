@@ -402,4 +402,11 @@ bool smmu_compatible_sme_exists(streamid_t mask, streamid_t id, size_t ctx, bool
 #define SMMU_PME_ACC_READ           0x0011      // Access Read
 #define SMMU_PME_ACC_WRITE          0x0012      // Access Write
 
+void smmu_setup_event(size_t counter, size_t event);
+void smmu_set_event_type(size_t counter, size_t event);
+void smmu_set_event_cntr(size_t counter, size_t count_value);
+void smmu_pmu_define_irq_callback(irq_handler_t handler);
+void smmu_irq_handler(irqid_t id);
+void smmu_event_ctr_ovf_clr(size_t counter);
+
 #endif
