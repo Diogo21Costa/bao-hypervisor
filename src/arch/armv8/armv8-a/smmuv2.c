@@ -356,3 +356,33 @@ size_t implemented_cntr_groups() {
     pmcfgr = pmcfgr & SMMU_PMCFGR_NCG_MASK;
     return pmcfgr;
 }
+
+void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) {
+    if (counter_id >= implemented_event_cntrs()) {
+        return false;
+    }
+
+    if (!smmu_is_valid_event(smmu_event)) {
+        return false;
+    }
+    /*
+    Procedure:
+        1. Set evente type
+        2. Set counter
+        3. Clear counter overflows
+        4. Set IRQ callback (optional)
+        5. Enable the IRQ (only if 4. is performed)
+    */
+
+    smmu_set_event_type(counter_id, smmu_event);
+
+    smmu_set_event_cntr(counter_id, UINT32_MAX);
+    
+    smmu_event_ctr_ovf_clr(counter_id);
+
+    if(en_irq) {
+        smmu_pmu_define_irq_callback(counter_id, smmu_irq_handler);
+        smmu_pmu_interrupt_enable(counter_id, smmu_event)
+    }
+
+}

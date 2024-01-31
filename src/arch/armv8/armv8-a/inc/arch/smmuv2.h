@@ -407,4 +407,6 @@ bool smmu_compatible_sme_exists(streamid_t mask, streamid_t id, size_t ctx, bool
 
 size_t implemented_event_cntrs();
 size_t implemented_cntr_groups();
+
+void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) 
 #endif
