@@ -114,6 +114,9 @@
 /* SMMU Performance Monitors Extension Event Classes */
 #define SMMU_PME_CYCLE_COUNT        0x0000      // Cycle count, occurs every SMMU clock cycle
 #define SMMU_PME_CYCLE_COUNT_64     0x0001      // Cycle count divided by 64 event, occurs every 64th SMMU clock cycle
+#define SMMU_PME_TLB_ENTRY_ALLOC    0x0008      // TLB Entry Allocated, occurs when an SMMU allocates a TLB entry to load a translation
+#define SMMU_PME_TLB_ENTRY_READ     0x0009      // TLB Entry Allocated for a Read or far-atomic
+#define SMMU_PME_TLB_ENTRY_WRITE    0x000A      // TLB Entry Allocated for a Write
 
 struct smmu_glbl_rs0_hw {
     uint32_t CR0;
