@@ -405,7 +405,7 @@ streamid_t smmu_sme_get_mask(size_t sme);
 bool smmu_sme_is_group(size_t sme);
 bool smmu_compatible_sme_exists(streamid_t mask, streamid_t id, size_t ctx, bool group);
 
-size_t implemented_event_cntrs();
+size_t smmu_implemented_event_cntrs();
 size_t implemented_cntr_groups();
 
 void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) 

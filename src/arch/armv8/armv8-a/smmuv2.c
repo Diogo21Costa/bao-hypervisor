@@ -345,7 +345,7 @@ void smmu_write_s2c(size_t sme, size_t ctx_id)
     spin_unlock(&smmu.sme_lock);
 }
 
-size_t implemented_event_cntrs() {
+size_t smmu_implemented_event_cntrs() {
     size_t pmcfgr = smmu.hw.cntxt->PMCFGR;
     pmcfgr = pmcfgr & SMMU_PMCFGR_N_MASK;
     return pmcfgr;
