@@ -121,6 +121,10 @@
 #define SMMU_PME_ACC_READ           0x0011      // Access Read
 #define SMMU_PME_ACC_WRITE          0x0012      // Access Write
 
+#define SMMU_PMCFGR_N_OFF               (0)
+#define SMMU_PMCFGR_N_LEN               (8)
+#define SMMU_PMCFGR_N_MASK              BIT32_MASK(SMMU_PMCFGR_N_OFF, SMMU_PMCFGR_N_LEN)
+
 struct smmu_glbl_rs0_hw {
     uint32_t CR0;
     uint32_t SCR1;
@@ -395,4 +399,6 @@ streamid_t smmu_sme_get_mask(size_t sme);
 bool smmu_sme_is_group(size_t sme);
 bool smmu_compatible_sme_exists(streamid_t mask, streamid_t id, size_t ctx, bool group);
 
+size_t implemented_event_cntrs();
+size_t implemented_cntr_groups();
 #endif
