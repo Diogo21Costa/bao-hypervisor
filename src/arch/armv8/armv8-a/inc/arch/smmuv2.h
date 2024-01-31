@@ -112,14 +112,16 @@
 #define S2CR_DFLT                       (0)
 
 /* SMMU Performance Monitors Extension Event Classes */
-#define SMMU_PME_CYCLE_COUNT        0x0000      // Cycle count, occurs every SMMU clock cycle
-#define SMMU_PME_CYCLE_COUNT_64     0x0001      // Cycle count divided by 64 event, occurs every 64th SMMU clock cycle
-#define SMMU_PME_TLB_ENTRY_ALLOC    0x0008      // TLB Entry Allocated, occurs when an SMMU allocates a TLB entry to load a translation
-#define SMMU_PME_TLB_ENTRY_READ     0x0009      // TLB Entry Allocated for a Read or far-atomic
-#define SMMU_PME_TLB_ENTRY_WRITE    0x000A      // TLB Entry Allocated for a Write
-#define SMMU_PME_ACC                0x0010      // Access, occurs when an SMMU processes a new transaction
-#define SMMU_PME_ACC_READ           0x0011      // Access Read
-#define SMMU_PME_ACC_WRITE          0x0012      // Access Write
+enum smmuv2_pmu_events {
+    SMMU_PME_CYCLE_COUNT = 0x0000,      // Cycle count, occurs every SMMU clock cycle
+    SMMU_PME_CYCLE_COUNT_64 = 0x0001,   // Cycle count divided by 64 event, occurs every 64th SMMU clock cycle
+    SMMU_PME_TLB_ENTRY_ALLOC = 0x0008,  // TLB Entry Allocated, occurs when an SMMU allocates a TLB entry to load a translation
+    SMMU_PME_TLB_ENTRY_READ = 0x0009,   // TLB Entry Allocated for a Read or far-atomic
+    SMMU_PME_TLB_ENTRY_WRITE = 0x000A,  // TLB Entry Allocated for a Write
+    SMMU_PME_ACC = 0x0010,              // Access, occurs when an SMMU processes a new transaction
+    SMMU_PME_ACC_READ = 0x0011,         // Access Read
+    SMMU_PME_ACC_WRITE = 0x0012         // Access Write
+};
 
 #define SMMU_PMCFGR_N_OFF               (0)
 #define SMMU_PMCFGR_N_LEN               (8)
