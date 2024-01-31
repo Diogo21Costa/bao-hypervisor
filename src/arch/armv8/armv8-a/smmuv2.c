@@ -357,8 +357,18 @@ size_t implemented_cntr_groups() {
     return pmcfgr;
 }
 
+bool smmu_is_valid_event(uint32_t smmu_event) {
+    for (enum smmuv2_pmu_events event = SMMU_PME_CYCLE_COUNT; event <= SMMU_PME_ACC_WRITE; event++) {
+        if (smmu_event == event) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) {
-    if (counter_id >= implemented_event_cntrs()) {
+    if (counter_id >= smmu_implemented_event_cntrs()) {
         return false;
     }
 
