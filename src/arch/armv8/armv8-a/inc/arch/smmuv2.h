@@ -125,6 +125,10 @@
 #define SMMU_PMCFGR_N_LEN               (8)
 #define SMMU_PMCFGR_N_MASK              BIT32_MASK(SMMU_PMCFGR_N_OFF, SMMU_PMCFGR_N_LEN)
 
+#define SMMU_PMCFGR_NCG_OFF             (24)
+#define SMMU_PMCFGR_NCG_LEN             (8)
+#define SMMU_PMCFGR_NCG_MASK            BIT32_MASK(SMMU_PMCFGR_NCG_OFF, SMMU_PMCFGR_NCG_LEN)
+
 struct smmu_glbl_rs0_hw {
     uint32_t CR0;
     uint32_t SCR1;

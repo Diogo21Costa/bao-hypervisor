@@ -352,5 +352,7 @@ size_t implemented_event_cntrs() {
 }
 
 size_t implemented_cntr_groups() {
-
+    size_t pmcfgr = smmu.hw.cntxt->PMCFGR;
+    pmcfgr = pmcfgr & SMMU_PMCFGR_NCG_MASK;
+    return pmcfgr;
 }
