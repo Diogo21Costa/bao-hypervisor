@@ -111,6 +111,10 @@
 #define S2CR_CLEAR(s2cr)                (s2cr & S2CR_IMPL_MASK)
 #define S2CR_DFLT                       (0)
 
+/* SMMU Performance Monitors Extension Event Classes */
+#define SMMU_PME_CYCLE_COUNT        0x0000      // Cycle count, occurs every SMMU clock cycle
+#define SMMU_PME_CYCLE_COUNT_64     0x0001      // Cycle count divided by 64 event, occurs every 64th SMMU clock cycle
+
 struct smmu_glbl_rs0_hw {
     uint32_t CR0;
     uint32_t SCR1;
