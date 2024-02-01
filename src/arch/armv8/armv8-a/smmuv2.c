@@ -367,6 +367,11 @@ bool smmu_is_valid_event(uint32_t smmu_event) {
     return false;
 }
 
+// Dummy IRQ Handler
+void smmu_irq_handler(){
+    return;
+}
+
 void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) {
     if (counter_id >= smmu_implemented_event_cntrs()) {
         return false;
