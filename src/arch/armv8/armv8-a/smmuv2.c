@@ -392,7 +392,7 @@ void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) {
 
     if(en_irq) {
         smmu_pmu_define_irq_callback(counter_id, smmu_irq_handler);
-        smmu_pmu_interrupt_enable(counter_id, smmu_event)
+        smmu_pmu_interrupt_enable(counter_id, smmu_event);
     }
 
 }
