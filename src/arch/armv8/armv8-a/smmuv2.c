@@ -451,3 +451,8 @@ void smmu_set_event_type(size_t counter, size_t event){
 
     smmu.hw.cntxt->PMEVTYPERm[counter] = pmevtyper;
 }
+
+void smmu_set_event_cntr(size_t counter, size_t value){
+    smmu.hw.cntxt->PMEVCNTRm[counter] = value;
+}
+
