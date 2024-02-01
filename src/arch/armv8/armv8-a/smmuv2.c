@@ -456,3 +456,10 @@ void smmu_set_event_cntr(size_t counter, size_t value){
     smmu.hw.cntxt->PMEVCNTRm[counter] = value;
 }
 
+void smmu_event_ctr_ovf_clr(size_t counter){
+    uint32_t pmovsclr = smmu.hw.cntxt->PMOVSCLR;
+    pmovsclr = bit32_clear(pmovsclr, counter);
+    smmu.hw.cntxt->PMOVSCLR = pmovsclr;
+}
+
+
