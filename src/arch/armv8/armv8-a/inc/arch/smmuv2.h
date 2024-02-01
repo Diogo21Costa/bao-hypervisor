@@ -7,6 +7,7 @@
 #define __ARCH_SMMUV2_H__
 
 #include <bao.h>
+#include <interrupts.h>
 
 #define SMMUV2_CR0_GFRE                 (0x1 << 1)
 #define SMMUV2_CR0_GFIE                 (0x1 << 2)
@@ -130,6 +131,9 @@ enum smmuv2_pmu_events {
 #define SMMU_PMCFGR_NCG_OFF             (24)
 #define SMMU_PMCFGR_NCG_LEN             (8)
 #define SMMU_PMCFGR_NCG_MASK            BIT32_MASK(SMMU_PMCFGR_NCG_OFF, SMMU_PMCFGR_NCG_LEN)
+
+#define SMMU_PMCGCR_CGNC_OFF        (24)
+#define SMMU_PMCGCR_CGNC_LEN        (4)
 
 struct smmu_glbl_rs0_hw {
     uint32_t CR0;
@@ -409,7 +413,7 @@ size_t smmu_implemented_event_cntrs();
 bool smmu_is_valid_event(uint32_t smmu_event);
 size_t implemented_cntr_groups();
 
-void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq);
+bool smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq);
 void smmu_set_event_type(size_t counter, size_t event);
 void smmu_set_event_cntr(size_t counter, size_t value);
 void smmu_event_ctr_ovf_clr(size_t counter);

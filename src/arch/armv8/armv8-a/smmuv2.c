@@ -382,7 +382,7 @@ void smmu_irq_handler(){
     return;
 }
 
-void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) {
+bool smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) {
     if (counter_id >= smmu_implemented_event_cntrs()) {
         return false;
     }
@@ -408,6 +408,8 @@ void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) {
     if(en_irq) {
         smmu_pmu_interrupt_enable(counter_id, smmu_irq_handler);
     }
+
+    return true;
 
 }
 
@@ -471,4 +473,3 @@ void smmu_pmu_interrupt_enable(size_t counter, irq_handler_t handler){
     pmintenset = bit_set(pmintenset, counter);
     smmu.hw.cntxt->PMINTENSET = pmintenset;
 }
-
