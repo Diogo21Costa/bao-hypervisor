@@ -15,6 +15,14 @@
 #define SME_MAX_NUM 128
 #define CTX_MAX_NUM 128
 
+#define SMMU_PMEVTYPER_P_OFF        (31)
+#define SMMU_PMEVTYPER_U_OFF        (30)
+#define SMMU_PMEVTYPER_NSP_OFF      (29)
+#define SMMU_PMEVTYPER_NSU_OFF      (28)
+
+#define SMMU_PMEVTYPER_EVENT_OFF    (0)
+#define SMMU_PMEVTYPER_EVENT_LEN    (16)
+
 struct smmu_hw {
     volatile struct smmu_glbl_rs0_hw* glbl_rs0;
     volatile struct smmu_glbl_rs1_hw* glbl_rs1;
@@ -400,4 +408,46 @@ void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) {
         smmu_pmu_interrupt_enable(counter_id, smmu_event);
     }
 
+}
+
+void smmu_set_event_type(size_t counter, size_t event){
+
+    // PMEVTYPERn, Performance Monitors Event Type Registers
+    uint32_t pmevtyper = smmu.hw.cntxt->PMEVTYPERm[counter];
+
+    /*  P, bit[31] Privileged transactions filtering bit. Controls the counting
+    *   of Secure privileged transactions.
+    *       0 Count events relating to Secure privileged transactions.
+    *       1 Do not count events relating to Secure privileged transactions.
+    */
+    pmevtyper = bit32_clear(pmevtyper, SMMU_PMEVTYPER_P_OFF);
+
+    /*  U, bit[30] Unprivileged transactions filtering bit. Controls the
+    *    counting of Secure unprivileged transactions.
+    *       0 Count events relating to Secure unprivileged transactions.
+    *       1 Do not count events relating to Secure unprivileged transactions.
+    */
+    pmevtyper = bit32_clear(pmevtyper, SMMU_PMEVTYPER_U_OFF);
+
+    /*  NSP, bit[29] Non-secure Privileged transactions filtering bit. Controls
+    *   the counting of Non-secure privileged transactions.
+    *       P==NSP Count events relating to Non-secure privileged transactions.
+    *       P!=NSP Do not count events relating to Non-secure privileged 
+    *           transactions.
+    */
+    pmevtyper = bit32_set(pmevtyper, SMMU_PMEVTYPER_NSP_OFF);
+
+    /*   NSU, bit[28] Non-secure unprivileged transactions filtering bit.
+    *    Controls counting of Non-secure unprivileged transactions.
+    *        U==NSU Count events relating to Non-secure unprivileged 
+    *           transactions.
+    *        U!=NSU Do not count events relating to Non-secure unprivileged 
+    *            transactions.Non-secure unprivileged transactions filtering
+    *            bit. Controls counting of Non-secure unprivileged transactions.
+    */
+    pmevtyper = bit32_set(pmevtyper, SMMU_PMEVTYPER_NSU_OFF);
+
+    bit_insert(pmevtyper, event, SMMU_PMEVTYPER_EVENT_OFF, SMMU_PMEVTYPER_EVENT_LEN);
+
+    smmu.hw.cntxt->PMEVTYPERm[counter] = pmevtyper;
 }

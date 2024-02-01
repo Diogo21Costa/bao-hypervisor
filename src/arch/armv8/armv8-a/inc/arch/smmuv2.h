@@ -409,5 +409,6 @@ size_t smmu_implemented_event_cntrs();
 bool smmu_is_valid_event(uint32_t smmu_event);
 size_t implemented_cntr_groups();
 
-void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) 
+void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq);
+void smmu_set_event_type(size_t counter, size_t event);
 #endif
