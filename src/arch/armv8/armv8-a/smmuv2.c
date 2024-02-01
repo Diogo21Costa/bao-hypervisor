@@ -23,6 +23,8 @@
 #define SMMU_PMEVTYPER_EVENT_OFF    (0)
 #define SMMU_PMEVTYPER_EVENT_LEN    (16)
 
+#define SMMU_IRQ_ID         187
+
 struct smmu_hw {
     volatile struct smmu_glbl_rs0_hw* glbl_rs0;
     volatile struct smmu_glbl_rs1_hw* glbl_rs1;
@@ -404,8 +406,7 @@ void smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) {
     smmu_event_ctr_ovf_clr(counter_id);
 
     if(en_irq) {
-        smmu_pmu_define_irq_callback(counter_id, smmu_irq_handler);
-        smmu_pmu_interrupt_enable(counter_id, smmu_event);
+        smmu_pmu_interrupt_enable(counter_id, smmu_irq_handler);
     }
 
 }
@@ -462,4 +463,12 @@ void smmu_event_ctr_ovf_clr(size_t counter){
     smmu.hw.cntxt->PMOVSCLR = pmovsclr;
 }
 
+void smmu_pmu_interrupt_enable(size_t counter, irq_handler_t handler){
+    interrupts_reserve(SMMU_IRQ_ID, handler);
+    interrupts_arch_enable(SMMU_IRQ_ID, true);
+
+    uint32_t pmintenset = smmu.hw.cntxt->PMINTENSET;
+    pmintenset = bit_set(pmintenset, counter);
+    smmu.hw.cntxt->PMINTENSET = pmintenset;
+}
 
