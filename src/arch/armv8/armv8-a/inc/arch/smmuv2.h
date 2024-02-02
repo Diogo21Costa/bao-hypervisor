@@ -124,6 +124,8 @@ enum smmuv2_pmu_events {
     SMMU_PME_ACC_WRITE = 0x0012         // Access Write
 };
 
+#define SMMU_PMU_MAX_COUNTERS           (15)
+
 #define SMMU_PMCFGR_N_OFF               (0)
 #define SMMU_PMCFGR_N_LEN               (8)
 #define SMMU_PMCFGR_N_MASK              BIT32_MASK(SMMU_PMCFGR_N_OFF, SMMU_PMCFGR_N_LEN)
@@ -418,5 +420,8 @@ void smmu_set_event_type(size_t counter, size_t event);
 void smmu_set_event_cntr(size_t counter, size_t value);
 void smmu_event_ctr_ovf_clr(size_t counter);
 void smmu_pmu_interrupt_enable(size_t counter, irq_handler_t handler);
+uint32_t smmu_read_counter(size_t counter);
+
+void smmu_events_init();
 
 #endif
