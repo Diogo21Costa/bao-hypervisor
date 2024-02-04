@@ -382,8 +382,8 @@ void smmu_irq_handler(){
     return;
 }
 
-bool smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq) {
-    counter_id = smmu_implemented_event_cntrs();
+bool smmu_setup_counter(size_t ctx_id, size_t counter_id, uint32_t smmu_event, bool en_irq) {
+    counter_id = smmu_implemented_event_cntrs() + 1;
     if (counter_id >= SMMU_PMU_MAX_COUNTERS) {
         return false;
     }
@@ -480,20 +480,18 @@ void smmu_pmu_interrupt_enable(size_t counter, irq_handler_t handler){
     interrupts_reserve(SMMU_IRQ_ID, handler);
     interrupts_arch_enable(SMMU_IRQ_ID, true);
 
-    uint32_t pmintenset = smmu.hw.cntxt[0].PMINTENSET;
+    volatile uint32_t pmintenset = smmu.hw.cntxt[0].PMINTENSET;
     pmintenset = bit_set(pmintenset, counter);
     smmu.hw.cntxt[0].PMINTENSET = pmintenset;
 }
 
-void smmu_events_init() {
+void smmu_events_init(size_t ctx_id) {
     size_t counter_id = 0;
     uint32_t event = SMMU_PME_TLB_ENTRY_WRITE;
 
-    for (size_t i = 0; i < smmu.ctx_num; i++) {
-        console_printk("context_num: %d\n", i);
-    }
+    console_printk("vm ctx_id: %d\n", ctx_id);
 
-    smmu_setup_counter(counter_id, event, true);
+    smmu_setup_counter(ctx_id, counter_id, event, true);
     
     uint32_t counter_val = 0;
     counter_val = smmu_read_counter(counter_id);

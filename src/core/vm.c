@@ -269,7 +269,7 @@ struct vm* vm_init(struct vm_allocation* vm_alloc, const struct vm_config* confi
         vm_init_dev(vm, config);
         vm_init_ipc(vm, config);
 
-        smmu_events_init();
+        smmu_events_init(vm->io.prot.mmu.ctx_id);
     }
 
     cpu_sync_and_clear_msgs(&vm->sync);

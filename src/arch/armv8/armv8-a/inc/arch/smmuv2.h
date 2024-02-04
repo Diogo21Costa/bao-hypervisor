@@ -415,13 +415,13 @@ size_t smmu_implemented_event_cntrs();
 bool smmu_is_valid_event(uint32_t smmu_event);
 size_t implemented_cntr_groups();
 
-bool smmu_setup_counter(size_t counter_id, uint32_t smmu_event, bool en_irq);
+bool smmu_setup_counter(size_t ctx_id, size_t counter_id, uint32_t smmu_event, bool en_irq);
 void smmu_set_event_type(size_t counter, size_t event);
 void smmu_set_event_cntr(size_t counter, size_t value);
 void smmu_event_ctr_ovf_clr(size_t counter);
 void smmu_pmu_interrupt_enable(size_t counter, irq_handler_t handler);
 uint32_t smmu_read_counter(size_t counter);
 
-void smmu_events_init();
+void smmu_events_init(size_t ctx_id);
 
 #endif
