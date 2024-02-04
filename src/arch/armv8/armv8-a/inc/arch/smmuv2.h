@@ -126,6 +126,15 @@ enum smmuv2_pmu_events {
 
 #define SMMU_PMU_MAX_COUNTERS           (15)
 
+#define SMMU_PMCR_X_OFF                 (4)
+#define SMMU_PMCR_X_LEN                 (1)
+
+#define SMMU_PMCR_P_OFF                 (1)
+#define SMMU_PMCR_P_LEN                 (1)
+
+#define SMMU_PMCR_E_OFF                 (0)
+#define SMMU_PMCR_E_LEN                 (1)
+
 #define SMMU_PMCFGR_N_OFF               (0)
 #define SMMU_PMCFGR_N_LEN               (8)
 #define SMMU_PMCFGR_N_MASK              BIT32_MASK(SMMU_PMCFGR_N_OFF, SMMU_PMCFGR_N_LEN)
@@ -415,6 +424,7 @@ size_t smmu_implemented_event_cntrs();
 bool smmu_is_valid_event(uint32_t smmu_event);
 size_t implemented_cntr_groups();
 
+void smmu_enable_pmc(size_t ctx_id);
 bool smmu_setup_counter(size_t ctx_id, size_t counter_id, uint32_t smmu_event, bool en_irq);
 void smmu_set_event_type(size_t counter, size_t event);
 void smmu_set_event_cntr(size_t counter, size_t value);

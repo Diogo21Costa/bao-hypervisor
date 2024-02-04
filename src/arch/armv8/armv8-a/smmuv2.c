@@ -486,6 +486,9 @@ void smmu_pmu_interrupt_enable(size_t counter, irq_handler_t handler){
 }
 
 void smmu_events_init(size_t ctx_id) {
+
+    smmu_enable_pmc(ctx_id);
+
     size_t counter_id = 0;
     uint32_t event = SMMU_PME_TLB_ENTRY_WRITE;
 
@@ -501,4 +504,24 @@ void smmu_events_init(size_t ctx_id) {
 
 uint32_t smmu_read_counter(size_t counter){
     return smmu.hw.cntxt[0].PMEVCNTRm[counter];
+}
+
+void smmu_enable_pmc(size_t ctx_id) {
+    spin_lock(&smmu.ctx_lock);
+    uint32_t pmcr = smmu.hw.cntxt[ctx_id].PMCR;
+
+    // enable export of events
+    pmcr = bit32_set(pmcr, SMMU_PMCR_X_OFF);
+
+    // reset all event counters to zero
+    pmcr = bit32_set(pmcr, SMMU_PMCR_P_OFF);
+
+    // enable all counters
+    pmcr = bit32_set(pmcr, SMMU_PMCR_E_OFF);
+
+    smmu.hw.cntxt[ctx_id].PMCR = pmcr;
+    spin_unlock(&smmu.ctx_lock);
+
+    console_printk("pmcr: %d\n", pmcr);
+    console_printk("smmu.hw.cntxt[ctx_id].PMCR: %d\n", smmu.hw.cntxt[ctx_id].PMCR);
 }
