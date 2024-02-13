@@ -406,9 +406,32 @@ struct smmu_cntxt_hw {
 } __attribute__((__packed__, __aligned__(PAGE_SIZE)));
 
 #define SMMU_PMU_MAX_COUNTERS           (256)
+#define SMMU_PMU_MAX_X                  (7)
+#define SMMU_PMUID_SIZE                 (11)
 
 struct smmu_pmu_hw {          
-    uint32_t PMEVCNTR[SMMU_PMU_MAX_COUNTERS];       // 0x00000
+    uint32_t PMEVCNTRn[SMMU_PMU_MAX_COUNTERS];      // 0x00000
+    uint32_t PMEVTYPERn[SMMU_PMU_MAX_COUNTERS];     // 0x00400
+    uint32_t PMCGCRn[SMMU_PMU_MAX_COUNTERS];        // 0x00800
+    uint32_t PMCGSMRn[SMMU_PMU_MAX_COUNTERS];       // 0x00A00
+    uint32_t PMCNTENSETx[SMMU_PMU_MAX_X];           // 0x00C00
+    uint32_t PMCNTENCLRx[SMMU_PMU_MAX_X];           // 0x00C20
+    uint32_t PMINTENSETx[SMMU_PMU_MAX_X];           // 0x00C40
+    uint32_t PMINTENCLRx[SMMU_PMU_MAX_X];           // 0x00C80
+    uint8_t res1[0xcc0 - 0xca0];                    // 0x00CA0
+    uint32_t PMOVSSETx[SMMU_PMU_MAX_X];             // 0x00CC0
+    uint8_t res2[0xe00 - 0xce0];                    // 0x00CE0
+    uint32_t PMCFGR[SMMU_PMU_MAX_X];                // 0x00E00
+    uint32_t PMCR[SMMU_PMU_MAX_X];                  // 0x00E04
+    uint8_t res3[0xe20 - 0xe08];                    // 0x00E08
+    uint32_t PMCEID0;                               // 0x00E20
+    uint32_t PMCEID1;                               // 0x00E24
+    uint8_t res4[0xfb8 - 0xe28];                    // 0x00E28
+    uint32_t PMAUTHSTATUS;                          // 0x00FB8
+    uint8_t res5[0xfcc- 0xfbc];                     // 0x00FBC
+    uint32_t PMDEVTYPE;                             // 0x00FCC
+    uint32_t PMPIDy_PMCIDz[SMMU_PMUID_SIZE];        // 0x00FD0
+
 } __attribute__((__packed__, __aligned__(PAGE_SIZE)));
 
 typedef deviceid_t streamid_t;
