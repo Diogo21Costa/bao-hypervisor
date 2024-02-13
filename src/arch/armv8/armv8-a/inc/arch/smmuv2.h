@@ -405,6 +405,12 @@ struct smmu_cntxt_hw {
     uint8_t res13[];                                // 0x00FBC
 } __attribute__((__packed__, __aligned__(PAGE_SIZE)));
 
+#define SMMU_PMU_MAX_COUNTERS           (256)
+
+struct smmu_pmu_hw {          
+    uint32_t PMEVCNTR[SMMU_PMU_MAX_COUNTERS];       // 0x00000
+} __attribute__((__packed__, __aligned__(PAGE_SIZE)));
+
 typedef deviceid_t streamid_t;
 
 void smmu_init();
