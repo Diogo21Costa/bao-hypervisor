@@ -29,6 +29,7 @@ struct smmu_hw {
     volatile struct smmu_glbl_rs0_hw* glbl_rs0;
     volatile struct smmu_glbl_rs1_hw* glbl_rs1;
     volatile struct smmu_cntxt_hw* cntxt;
+    volatile struct smmu_pmu_hw* pmu;
 };
 
 struct smmu_priv {
@@ -151,8 +152,14 @@ void smmu_init()
     vaddr_t smmu_cntxt = mem_alloc_map_dev(&cpu()->as, SEC_HYP_GLOBAL, INVALID_VA,
         platform.arch.smmu.base + (num_page * pg_size), NUM_PAGES(pg_size * ctx_bank_num));
 
+
+    vaddr_t smmu_pmu = mem_alloc_map_dev(&cpu()->as, SEC_HYP_GLOBAL, INVALID_VA,
+        platform.arch.smmu.base + (3 * pg_size), NUM_PAGES(pg_size * ctx_bank_num));
+
     smmu.hw.glbl_rs1 = (struct smmu_glbl_rs1_hw*)smmu_glbl_rs1;
     smmu.hw.cntxt = (struct smmu_cntxt_hw*)smmu_cntxt;
+    // TODO: check if it possible to map the PMU before mapping the 16 pages
+    smmu.hw.pmu = (struct smmu_pmu_hw*)smmu_pmu;
 
     /* Everything is mapped. Initialize book-keeping data. */
 
