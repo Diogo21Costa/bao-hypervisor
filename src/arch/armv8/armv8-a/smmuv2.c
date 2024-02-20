@@ -44,6 +44,10 @@ struct smmu_priv {
     spinlock_t ctx_lock;
     size_t ctx_num;
     BITMAP_ALLOC(ctxbank_bitmap, CTX_MAX_NUM);
+
+    spinlock_t pmu_lock;
+    size_t pmu_cntrs_num;
+    size_t cntr_groups_num;
 };
 
 struct smmu_priv smmu;
@@ -513,22 +517,109 @@ uint32_t smmu_read_counter(size_t counter){
     return smmu.hw.cntxt[0].PMEVCNTRm[counter];
 }
 
-void smmu_enable_pmc(size_t ctx_id) {
-    spin_lock(&smmu.ctx_lock);
-    uint32_t pmcr = smmu.hw.cntxt[ctx_id].PMCR;
+// void smmu_enable_pmc(size_t ctx_id/*, size_t counter_id*/) {
 
-    // enable export of events
-    pmcr = bit32_set(pmcr, SMMU_PMCR_X_OFF);
+//     size_t counter_id = 0;
+//     spin_lock(&smmu.ctx_lock);
 
-    // reset all event counters to zero
-    pmcr = bit32_set(pmcr, SMMU_PMCR_P_OFF);
+//     uint32_t pmcgcr = smmu.hw.pmu->PMCFGR[counter_id];
+//     pmcgcr = bit32_set(pmcgcr, SMMU_PMCGCR_CBAEN_OFF);
 
-    // enable all counters
-    pmcr = bit32_set(pmcr, SMMU_PMCR_E_OFF);
+//     pmcgcr = bit32_insert(pmcgcr, ctx_id, SMMU_PMCGCR_NDX_OFF, SMMU_PMCGCR_NDX_LEN);
 
-    smmu.hw.cntxt[ctx_id].PMCR = pmcr;
-    spin_unlock(&smmu.ctx_lock);
+//     uint32_t pmcr = smmu.hw.cntxt[ctx_id].PMCR;
 
-    console_printk("pmcr: %d\n", pmcr);
-    console_printk("smmu.hw.cntxt[ctx_id].PMCR: %d\n", smmu.hw.cntxt[ctx_id].PMCR);
+//     // enable export of events
+//     pmcr = bit32_set(pmcr, SMMU_PMCR_X_OFF);
+
+//     // reset all event counters to zero
+//     pmcr = bit32_set(pmcr, SMMU_PMCR_P_OFF);
+
+//     // enable all counters
+//     pmcr = bit32_set(pmcr, SMMU_PMCR_E_OFF);
+
+//     smmu.hw.cntxt[ctx_id].PMCR = pmcr;
+//     spin_unlock(&smmu.ctx_lock);
+
+//     console_printk("pmcr: %d\n", pmcr);
+//     console_printk("smmu.hw.cntxt[ctx_id].PMCR: %d\n", smmu.hw.cntxt[ctx_id].PMCR);
+// }
+
+
+// uint32_t smmu_alloc_counter(size_t ctx_id) {
+//     spin_lock(&smmu.ctx_lock);
+
+//     // Get number of implemented counters
+//     size_t implement_cntrs = smmu_implemented_event_cntrs();
+
+//     uint32_t pmcgcr = smmu.hw.pmu->PMCFGR[implement_cntrs];
+
+//     spin_unlock(&smmu.ctx_lock);
+
+// }
+
+/******************************************************************************* Clean Code frome here*/
+/******************************************************************************/
+/******************************************************************************/
+
+// #define SMMU_PMU_MAX_EVENT_CNTRS    (256)
+// #define SMMU_PMU_MAX_CNTR_GROUPS    (256)
+// #define SMMU_PMUX_MAX_CNTR_PER_GRP  (15)
+
+
+void smmu_pmu_init();
+void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id);
+uint32_t smmu_pmu_alloc_cntr_grp();
+uint32_t smmu_pmu_alloc_cntr();
+
+enum smmu_pmu_filter {
+    smmu_pmu_filter_glb = 0b00,             // Count events on a global basis
+    smmu_pmu_filter_rest_pmcgsmr = 0b01,    // Counter events are restricted to matches in the corresponding PMCGSMRn register
+    smmu_pmu_filter_rest_trans_bnk = 0b10,  // Counter events are restricted to the translation context bank indicated by PMCGCRn.NDX
+    smmu_pmu_filter_reserved = 0b11         // Reserved
+};
+
+void smmu_pmu_init() {
+    size_t counter_group_id = smmu_pmu_alloc_cntr_grp();
+
+    // Setup SMMU PMU filtering
+    smmu_pmu_filtering(smmu_pmu_filter_glb, counter_group_id);
+}
+
+#define SMMU_PMCGCR_TCEFCFG_OFF        (8)
+#define SMMU_PMCGCR_TCEFCFG_LEN        (2)
+
+void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id) {
+    // Performance Monitors Counter Group Configuration Registers
+    uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
+    pmcgcr = bit32_insert(pmcgcr, filter_type, SMMU_PMCGCR_TCEFCFG_OFF, SMMU_PMCGCR_TCEFCFG_LEN);
+    smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
+}
+
+void smmu_pmu_enable_pmc() {
+    // uint32_t pmcgcr = smmu.hw.pmu->PMCFGR[counter_id];
+}
+
+uint32_t smmu_pmu_alloc_cntr_grp() {
+    // Performance Monitors Configuration Register
+    uint32_t pmcfgr = smmu.hw.pmu->PMCFGR;
+    uint32_t num_cntr_groups = pmcfgr & SMMU_PMCFGR_NCG_MASK;
+    num_cntr_groups++;
+    
+    pmcfgr = bit32_insert(pmcfgr, num_cntr_groups, SMMU_PMCFGR_NCG_OFF, SMMU_PMCFGR_NCG_LEN);
+    smmu.hw.pmu->PMCFGR = pmcfgr;
+
+    return num_cntr_groups;
+}
+
+uint32_t smmu_pmu_alloc_cntr() {
+    // Performance Monitors Configuration Register
+    uint32_t pmcfgr = smmu.hw.pmu->PMCFGR;
+    uint32_t num_cntr_groups = pmcfgr & SMMU_PMCFGR_N_MASK;
+    num_cntr_groups++;
+    
+    pmcfgr = bit32_insert(pmcfgr, num_cntr_groups, SMMU_PMCFGR_N_OFF, SMMU_PMCFGR_N_LEN);
+    smmu.hw.pmu->PMCFGR = pmcfgr;
+
+    return num_cntr_groups;
 }

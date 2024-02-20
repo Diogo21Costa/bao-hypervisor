@@ -124,7 +124,7 @@ enum smmuv2_pmu_events {
     SMMU_PME_ACC_WRITE = 0x0012         // Access Write
 };
 
-#define SMMU_PMU_MAX_COUNTERS           (15)
+// #define SMMU_PMU_MAX_COUNTERS           (15)
 
 #define SMMU_PMCR_X_OFF                 (4)
 #define SMMU_PMCR_X_LEN                 (1)
@@ -145,6 +145,11 @@ enum smmuv2_pmu_events {
 
 #define SMMU_PMCGCR_CGNC_OFF        (24)
 #define SMMU_PMCGCR_CGNC_LEN        (4)
+
+#define SMMU_PMCGCR_NDX_OFF         (0)
+#define SMMU_PMCGCR_NDX_LEN         (8)
+#define SMMU_PMCGCR_CBAEN_OFF       (10)
+#define SMMU_PMCGCR_CBAEN_LEN       (1)
 
 struct smmu_glbl_rs0_hw {
     uint32_t CR0;
@@ -409,11 +414,15 @@ struct smmu_cntxt_hw {
 #define SMMU_PMU_MAX_X                  (7)
 #define SMMU_PMUID_SIZE                 (11)
 
+#define SMMU_PMU_MAX_EVENT_CNTRS    (256)
+#define SMMU_PMU_MAX_CNTR_GROUPS    (256)
+#define SMMU_PMUX_MAX_CNTR_PER_GRP  (15)
+
 struct smmu_pmu_hw {          
     uint32_t PMEVCNTRn[SMMU_PMU_MAX_COUNTERS];      // 0x00000
     uint32_t PMEVTYPERn[SMMU_PMU_MAX_COUNTERS];     // 0x00400
-    uint32_t PMCGCRn[SMMU_PMU_MAX_COUNTERS];        // 0x00800
-    uint32_t PMCGSMRn[SMMU_PMU_MAX_COUNTERS];       // 0x00A00
+    uint32_t PMCGCRn[SMMU_PMU_MAX_CNTR_GROUPS];     // 0x00800
+    uint32_t PMCGSMRn[SMMU_PMU_MAX_CNTR_GROUPS];    // 0x00A00
     uint32_t PMCNTENSETx[SMMU_PMU_MAX_X];           // 0x00C00
     uint32_t PMCNTENCLRx[SMMU_PMU_MAX_X];           // 0x00C20
     uint32_t PMINTENSETx[SMMU_PMU_MAX_X];           // 0x00C40
@@ -421,8 +430,8 @@ struct smmu_pmu_hw {
     uint8_t res1[0xcc0 - 0xca0];                    // 0x00CA0
     uint32_t PMOVSSETx[SMMU_PMU_MAX_X];             // 0x00CC0
     uint8_t res2[0xe00 - 0xce0];                    // 0x00CE0
-    uint32_t PMCFGR[SMMU_PMU_MAX_X];                // 0x00E00
-    uint32_t PMCR[SMMU_PMU_MAX_X];                  // 0x00E04
+    uint32_t PMCFGR;                                // 0x00E00
+    uint32_t PMCR;                                  // 0x00E04
     uint8_t res3[0xe20 - 0xe08];                    // 0x00E08
     uint32_t PMCEID0;                               // 0x00E20
     uint32_t PMCEID1;                               // 0x00E24
