@@ -592,15 +592,23 @@ void smmu_pmu_init() {
     smmu_pmu_config_cntr_group(counter_group_id);
 }
 
+/*************************************************************************************************** [Begin] Configure Counter Group*/
+/**************************************************************************************************/
+#define SMMU_PMCGCR_X_OFF               (12)
+#define SMMU_PMCGCR_X_LEN               (1)
+#define SMMU_PMCGCR_E_OFF               (11)
+#define SMMU_PMCGCR_E_LEN               (1)
+#define SMMU_PMCGCR_CBAEN_OFF           (10)
+#define SMMU_PMCGCR_CBAEN_LEN           (1)
+#define SMMU_PMCGCR_TCEFCFG_OFF         (8)
+#define SMMU_PMCGCR_TCEFCFG_LEN         (2)
+
 void smmu_pmu_config_cntr_group(size_t counter_group_id) {
     smmu_pmu_filtering(smmu_pmu_filter_glb, counter_group_id);
     smmu_en_pmc_event_export(counter_group_id);
     smmu_en_pmc(counter_group_id);
     smmu_en_ctxbnk_assignment(counter_group_id);
 }
-
-#define SMMU_PMCGCR_TCEFCFG_OFF        (8)
-#define SMMU_PMCGCR_TCEFCFG_LEN        (2)
 
 void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id) {
     // Performance Monitors Counter Group Configuration Registers
@@ -609,17 +617,11 @@ void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id) {
     smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
 }
 
-#define SMMU_PMCGCR_X_OFF        (12)
-#define SMMU_PMCGCR_X_LEN        (1)
-
 void smmu_en_pmc_event_export(size_t cntr_group_id){
     uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
     pmcgcr = bit32_set(pmcgcr, SMMU_PMCGCR_X_OFF);
     smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
 }
-
-#define SMMU_PMCGCR_E_OFF        (11)
-#define SMMU_PMCGCR_E_LEN        (1)
 
 void smmu_en_pmc(size_t cntr_group_id) {
     uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
@@ -627,14 +629,14 @@ void smmu_en_pmc(size_t cntr_group_id) {
     smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
 }
 
-#define SMMU_PMCGCR_CBAEN_OFF        (10)
-#define SMMU_PMCGCR_CBAEN_LEN        (1)
-
 void smmu_en_ctxbnk_assignment(size_t cntr_group_id) {
     uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
     pmcgcr = bit32_set(pmcgcr, SMMU_PMCGCR_CBAEN_OFF);
     smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
 }
+
+/*************************************************************************************************** [End] Configure Counter Group*/
+/**************************************************************************************************/
 
 uint32_t smmu_pmu_alloc_cntr_grp() {
     // Performance Monitors Configuration Register
