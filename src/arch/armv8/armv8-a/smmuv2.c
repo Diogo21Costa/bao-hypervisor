@@ -498,7 +498,7 @@ void smmu_pmu_interrupt_enable(size_t counter, irq_handler_t handler){
 
 void smmu_events_init(size_t ctx_id) {
 
-    smmu_enable_pmc(ctx_id);
+    // smmu_enable_pmc(ctx_id);
 
     size_t counter_id = 0;
     uint32_t event = SMMU_PME_TLB_ENTRY_WRITE;
@@ -572,6 +572,12 @@ void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id);
 uint32_t smmu_pmu_alloc_cntr_grp();
 uint32_t smmu_pmu_alloc_cntr();
 
+void smmu_pmu_config_cntr_group(size_t counter_group_id);
+void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id);
+void smmu_en_pmc_event_export(size_t cntr_group_id);
+void smmu_en_pmc(size_t cntr_group_id);
+void smmu_en_ctxbnk_assignment(size_t cntr_group_id);
+
 enum smmu_pmu_filter {
     smmu_pmu_filter_glb = 0b00,             // Count events on a global basis
     smmu_pmu_filter_rest_pmcgsmr = 0b01,    // Counter events are restricted to matches in the corresponding PMCGSMRn register
@@ -583,7 +589,14 @@ void smmu_pmu_init() {
     size_t counter_group_id = smmu_pmu_alloc_cntr_grp();
 
     // Setup SMMU PMU filtering
+    smmu_pmu_config_cntr_group(counter_group_id);
+}
+
+void smmu_pmu_config_cntr_group(size_t counter_group_id) {
     smmu_pmu_filtering(smmu_pmu_filter_glb, counter_group_id);
+    smmu_en_pmc_event_export(counter_group_id);
+    smmu_en_pmc(counter_group_id);
+    smmu_en_ctxbnk_assignment(counter_group_id);
 }
 
 #define SMMU_PMCGCR_TCEFCFG_OFF        (8)
@@ -596,17 +609,39 @@ void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id) {
     smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
 }
 
-void smmu_pmu_enable_pmc() {
-    // uint32_t pmcgcr = smmu.hw.pmu->PMCFGR[counter_id];
+#define SMMU_PMCGCR_X_OFF        (12)
+#define SMMU_PMCGCR_X_LEN        (1)
+
+void smmu_en_pmc_event_export(size_t cntr_group_id){
+    uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
+    pmcgcr = bit32_set(pmcgcr, SMMU_PMCGCR_X_OFF);
+    smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
+}
+
+#define SMMU_PMCGCR_E_OFF        (11)
+#define SMMU_PMCGCR_E_LEN        (1)
+
+void smmu_en_pmc(size_t cntr_group_id) {
+    uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
+    pmcgcr = bit32_set(pmcgcr, SMMU_PMCGCR_E_OFF);
+    smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
+}
+
+#define SMMU_PMCGCR_CBAEN_OFF        (10)
+#define SMMU_PMCGCR_CBAEN_LEN        (1)
+
+void smmu_en_ctxbnk_assignment(size_t cntr_group_id) {
+    uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
+    pmcgcr = bit32_set(pmcgcr, SMMU_PMCGCR_CBAEN_OFF);
+    smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
 }
 
 uint32_t smmu_pmu_alloc_cntr_grp() {
     // Performance Monitors Configuration Register
     uint32_t pmcfgr = smmu.hw.pmu->PMCFGR;
     uint32_t num_cntr_groups = pmcfgr & SMMU_PMCFGR_NCG_MASK;
-    num_cntr_groups++;
     
-    pmcfgr = bit32_insert(pmcfgr, num_cntr_groups, SMMU_PMCFGR_NCG_OFF, SMMU_PMCFGR_NCG_LEN);
+    pmcfgr = bit32_insert(pmcfgr, num_cntr_groups+1, SMMU_PMCFGR_NCG_OFF, SMMU_PMCFGR_NCG_LEN);
     smmu.hw.pmu->PMCFGR = pmcfgr;
 
     return num_cntr_groups;
@@ -616,9 +651,8 @@ uint32_t smmu_pmu_alloc_cntr() {
     // Performance Monitors Configuration Register
     uint32_t pmcfgr = smmu.hw.pmu->PMCFGR;
     uint32_t num_cntr_groups = pmcfgr & SMMU_PMCFGR_N_MASK;
-    num_cntr_groups++;
     
-    pmcfgr = bit32_insert(pmcfgr, num_cntr_groups, SMMU_PMCFGR_N_OFF, SMMU_PMCFGR_N_LEN);
+    pmcfgr = bit32_insert(pmcfgr, num_cntr_groups+1, SMMU_PMCFGR_N_OFF, SMMU_PMCFGR_N_LEN);
     smmu.hw.pmu->PMCFGR = pmcfgr;
 
     return num_cntr_groups;
