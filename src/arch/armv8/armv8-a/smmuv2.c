@@ -594,6 +594,11 @@ void smmu_pmu_init() {
 
 /*************************************************************************************************** [Begin] Configure Counter Group*/
 /**************************************************************************************************/
+
+#define SMMU_PMCGCR_CGNC_OFF            (24)
+#define SMMU_PMCGCR_CGNC_LEN            (4)
+#define SMMU_PMCGCR_CGNC_MASK           BIT32_MASK(SMMU_PMCGCR_CGNC_OFF, SMMU_PMCGCR_CGNC_LEN)
+
 #define SMMU_PMCGCR_X_OFF               (12)
 #define SMMU_PMCGCR_X_LEN               (1)
 
@@ -605,6 +610,10 @@ void smmu_pmu_init() {
 
 #define SMMU_PMCGCR_TCEFCFG_OFF         (8)
 #define SMMU_PMCGCR_TCEFCFG_LEN         (2)
+
+#define SMMU_PMCGCR_NDX_OFF             (0)
+#define SMMU_PMCGCR_NDX_LEN             (8)
+#define SMMU_PMCGCR_NDX_MASK            BIT32_MASK(SMMU_PMCGCR_NDX_OFF, SMMU_PMCGCR_NDX_LEN)
 
 void smmu_pmu_config_cntr_group(size_t counter_group_id) {
     smmu_pmu_filtering(smmu_pmu_filter_glb, counter_group_id);
@@ -638,19 +647,11 @@ void smmu_en_ctxbnk_assignment(size_t cntr_group_id) {
     smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
 }
 
-#define SMMU_PMCGCR_NDX_OFF         (0)
-#define SMMU_PMCGCR_NDX_LEN         (8)
-#define SMMU_PMCGCR_NDX_MASK        BIT32_MASK(SMMU_PMCGCR_NDX_OFF, SMMU_PMCGCR_NDX_LEN)
-
 size_t smmu_cntr_grp_ctx_bank(size_t cntr_group_id) {
     uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
     size_t cntx_bank_id = pmcgcr & SMMU_PMCGCR_NDX_MASK;
     return cntx_bank_id;
 }
-
-#define SMMU_PMCGCR_CGNC_OFF         (24)
-#define SMMU_PMCGCR_CGNC_LEN         (4)
-#define SMMU_PMCGCR_CGNC_MASK        BIT32_MASK(SMMU_PMCGCR_CGNC_OFF, SMMU_PMCGCR_CGNC_LEN)
 
 size_t smmu_cntr_grp_implemented_cntrs(size_t cntr_group_id) {
     uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
