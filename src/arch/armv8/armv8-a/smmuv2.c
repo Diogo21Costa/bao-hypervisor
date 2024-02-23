@@ -599,6 +599,10 @@ void smmu_pmu_init() {
 #define SMMU_PMCGCR_CGNC_LEN            (4)
 #define SMMU_PMCGCR_CGNC_MASK           BIT32_MASK(SMMU_PMCGCR_CGNC_OFF, SMMU_PMCGCR_CGNC_LEN)
 
+#define SMMU_PMCGCR_SIDG_OFF             (16)
+#define SMMU_PMCGCR_SIDG_LEN             (7)
+#define SMMU_PMCGCR_SIDG_MASK            BIT32_MASK(SMMU_PMCGCR_SIDG_OFF, SMMU_PMCGCR_SIDG_LEN)
+
 #define SMMU_PMCGCR_X_OFF               (12)
 #define SMMU_PMCGCR_X_LEN               (1)
 
@@ -658,10 +662,6 @@ size_t smmu_cntr_grp_implemented_cntrs(size_t cntr_group_id) {
     size_t num_cntrs = pmcgcr & SMMU_PMCGCR_CGNC_MASK;
     return num_cntrs;
 }
-
-#define SMMU_PMCGCR_SIDG_OFF             (16)
-#define SMMU_PMCGCR_SIDG_LEN             (7)
-#define SMMU_PMCGCR_SIDG_MASK            BIT32_MASK(SMMU_PMCGCR_SIDG_OFF, SMMU_PMCGCR_SIDG_LEN)
 
 size_t smmu_cntr_grp_stream_id(size_t cntr_group_id) {
     uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
