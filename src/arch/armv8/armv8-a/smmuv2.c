@@ -659,6 +659,16 @@ size_t smmu_cntr_grp_implemented_cntrs(size_t cntr_group_id) {
     return num_cntrs;
 }
 
+#define SMMU_PMCGCR_SIDG_OFF             (16)
+#define SMMU_PMCGCR_SIDG_LEN             (7)
+#define SMMU_PMCGCR_SIDG_MASK            BIT32_MASK(SMMU_PMCGCR_SIDG_OFF, SMMU_PMCGCR_SIDG_LEN)
+
+size_t smmu_cntr_grp_stream_id(size_t cntr_group_id) {
+    uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
+    size_t stream_id = pmcgcr & SMMU_PMCGCR_CGNC_MASK;
+    return stream_id;
+}
+
 /*************************************************************************************************** [End] Configure Counter Group*/
 /**************************************************************************************************/
 
