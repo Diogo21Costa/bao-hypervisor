@@ -590,6 +590,7 @@ void smmu_pmu_init() {
 
     // Setup SMMU PMU filtering
     smmu_pmu_config_cntr_group(counter_group_id);
+    size_t ctxt_bank_id = smmu_cntr_grp_ctx_bank(counter_group_id);
 }
 
 /*************************************************************************************************** [Begin] Configure Counter Group*/
@@ -670,6 +671,41 @@ size_t smmu_cntr_grp_stream_id(size_t cntr_group_id) {
 }
 
 /*************************************************************************************************** [End] Configure Counter Group*/
+/**************************************************************************************************/
+
+
+/*************************************************************************************************** [Begin] Configure Counter*/
+/**************************************************************************************************/
+
+#define SMMU_PMCR_E_OFF               (0)
+#define SMMU_PMCR_E_LEN               (1)
+
+void smmu_cb_pmc_enable(size_t ctxt_id) {
+    uint32_t pmcr = smmu.hw.cntxt[ctxt_id].PMCR;
+    pmcr = bit32_set(pmcr, SMMU_PMCR_E_OFF);
+    smmu.hw.cntxt[ctxt_id].PMCR = pmcr;
+}
+
+#define SMMU_PMCR_P_OFF               (1)
+#define SMMU_PMCR_P_LEN               (1)
+
+void smmu_cb_pmc_reset(size_t ctxt_id) {
+    uint32_t pmcr = smmu.hw.cntxt[ctxt_id].PMCR;
+    pmcr = bit32_set(pmcr, SMMU_PMCR_P_OFF);
+    smmu.hw.cntxt[ctxt_id].PMCR = pmcr;
+}
+
+#define SMMU_PMCR_X_OFF               (4)
+#define SMMU_PMCR_X_LEN               (1)
+
+void smmu_cb_pmc_enable_export(size_t ctxt_id) {
+    uint32_t pmcr = smmu.hw.cntxt[ctxt_id].PMCR;
+    pmcr = bit32_set(pmcr, SMMU_PMCR_X_OFF);
+    smmu.hw.cntxt[ctxt_id].PMCR = pmcr;
+}
+
+
+/*************************************************************************************************** [End] Configure Counter*/
 /**************************************************************************************************/
 
 uint32_t smmu_pmu_alloc_cntr_grp() {
