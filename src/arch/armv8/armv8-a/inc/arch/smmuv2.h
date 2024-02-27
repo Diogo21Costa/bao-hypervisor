@@ -411,11 +411,11 @@ struct smmu_cntxt_hw {
 } __attribute__((__packed__, __aligned__(PAGE_SIZE)));
 
 #define SMMU_PMU_MAX_COUNTERS           (256)
-#define SMMU_PMU_MAX_X                  (7)
+#define SMMU_PMU_MAX_X                  (8)
 #define SMMU_PMUID_SIZE                 (11)
 
 #define SMMU_PMU_MAX_EVENT_CNTRS    (256)
-#define SMMU_PMU_MAX_CNTR_GROUPS    (256)
+#define SMMU_PMU_MAX_CNTR_GROUPS    (128)
 #define SMMU_PMUX_MAX_CNTR_PER_GRP  (15)
 
 struct smmu_pmu_hw {          
@@ -426,7 +426,8 @@ struct smmu_pmu_hw {
     uint32_t PMCNTENSETx[SMMU_PMU_MAX_X];           // 0x00C00
     uint32_t PMCNTENCLRx[SMMU_PMU_MAX_X];           // 0x00C20
     uint32_t PMINTENSETx[SMMU_PMU_MAX_X];           // 0x00C40
-    uint32_t PMINTENCLRx[SMMU_PMU_MAX_X];           // 0x00C80
+    uint32_t PMINTENCLRx[SMMU_PMU_MAX_X];           // 0x00C60
+    uint32_t PMOVSCLRx[SMMU_PMU_MAX_X];             // 0x00C80
     uint8_t res1[0xcc0 - 0xca0];                    // 0x00CA0
     uint32_t PMOVSSETx[SMMU_PMU_MAX_X];             // 0x00CC0
     uint8_t res2[0xe00 - 0xce0];                    // 0x00CE0
