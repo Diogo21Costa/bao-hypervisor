@@ -269,7 +269,13 @@ struct vm* vm_init(struct vm_allocation* vm_alloc, const struct vm_config* confi
         vm_init_dev(vm, config);
         vm_init_ipc(vm, config);
 
-        smmu_events_init(vm->io.prot.mmu.ctx_id);
+        // smmu_events_init(vm->io.prot.mmu.ctx_id);
+        uint32_t counter_group_id = smmu_pmu_init();
+        console_printk("smmu counter_group_id: %d\n", counter_group_id);
+
+        size_t event = 0;
+        smmu_pmu_event_add(counter_group_id, event);
+
     }
 
     cpu_sync_and_clear_msgs(&vm->sync);

@@ -45,9 +45,13 @@ struct smmu_priv {
     size_t ctx_num;
     BITMAP_ALLOC(ctxbank_bitmap, CTX_MAX_NUM);
 
-    spinlock_t pmu_lock;
-    size_t pmu_cntrs_num;
-    size_t cntr_groups_num;
+    /* SMMU PMU */
+    size_t num_counters;
+    size_t num_cntr_grps;
+    size_t events;
+
+    BITMAP_ALLOC(used_counters_bitmap, 256);
+    BITMAP_ALLOC(used_counter_groups_bitmap, 256);
 };
 
 struct smmu_priv smmu;
@@ -158,7 +162,7 @@ void smmu_init()
 
 
     vaddr_t smmu_pmu = mem_alloc_map_dev(&cpu()->as, SEC_HYP_GLOBAL, INVALID_VA,
-        platform.arch.smmu.base + (3 * pg_size), NUM_PAGES(pg_size * ctx_bank_num));
+        platform.arch.smmu.base + (3 * pg_size), NUM_PAGES(sizeof(struct smmu_pmu_hw)));
 
     smmu.hw.glbl_rs1 = (struct smmu_glbl_rs1_hw*)smmu_glbl_rs1;
     smmu.hw.cntxt = (struct smmu_cntxt_hw*)smmu_cntxt;
@@ -567,7 +571,7 @@ uint32_t smmu_read_counter(size_t counter){
 // #define SMMU_PMUX_MAX_CNTR_PER_GRP  (15)
 
 
-void smmu_pmu_init();
+// void smmu_pmu_init();
 void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id);
 uint32_t smmu_pmu_alloc_cntr_grp();
 uint32_t smmu_pmu_alloc_cntr();
@@ -576,7 +580,9 @@ void smmu_pmu_config_cntr_group(size_t counter_group_id);
 void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id);
 void smmu_en_pmc_event_export(size_t cntr_group_id);
 void smmu_en_pmc(size_t cntr_group_id);
-void smmu_en_ctxbnk_assignment(size_t cntr_group_id);
+// void smmu_en_ctxbnk_assignment(size_t cntr_group_id);
+
+size_t smmu_cntr_grp_ctx_bank(size_t cntr_group_id);
 
 enum smmu_pmu_filter {
     smmu_pmu_filter_glb = 0b00,             // Count events on a global basis
@@ -585,12 +591,18 @@ enum smmu_pmu_filter {
     smmu_pmu_filter_reserved = 0b11         // Reserved
 };
 
-void smmu_pmu_init() {
-    size_t counter_group_id = smmu_pmu_alloc_cntr_grp();
+uint32_t smmu_pmu_init() {
+    size_t counter_group_id = bit_ffz(*smmu.used_counter_groups_bitmap);
+    bitmap_set(smmu.used_counter_groups_bitmap, counter_group_id);
 
     // Setup SMMU PMU filtering
     smmu_pmu_config_cntr_group(counter_group_id);
-    size_t ctxt_bank_id = smmu_cntr_grp_ctx_bank(counter_group_id);
+    // size_t ctxt_bank_id = smmu_cntr_grp_ctx_bank(counter_group_id);
+
+    // console_printk("ctxt_bank_id = %d\n", ctxt_bank_id);
+
+    return counter_group_id;
+    // maybe here return the ctxt_bank_id ? 
 }
 
 /*************************************************************************************************** [Begin] Configure Counter Group*/
@@ -624,7 +636,7 @@ void smmu_pmu_config_cntr_group(size_t counter_group_id) {
     smmu_pmu_filtering(smmu_pmu_filter_glb, counter_group_id);
     smmu_en_pmc_event_export(counter_group_id);
     smmu_en_pmc(counter_group_id);
-    smmu_en_ctxbnk_assignment(counter_group_id);
+    // smmu_en_ctxbnk_assignment(counter_group_id);
 }
 
 void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id) {
@@ -704,6 +716,18 @@ void smmu_cb_pmc_enable_export(size_t ctxt_id) {
     smmu.hw.cntxt[ctxt_id].PMCR = pmcr;
 }
 
+// void smmu_pmu_event_add(){
+//     uint32_t cntr_grp_idx = 0;
+//     uint32_t cntr_idx = 0;
+
+    
+// }
+
+
+// // ssize_t gic_cpu_id = bit32_ffs(sgi_targets);
+
+// PMCFGR, Performance Monitors Configuration Register
+
 
 /*************************************************************************************************** [End] Configure Counter*/
 /**************************************************************************************************/
@@ -728,4 +752,13 @@ uint32_t smmu_pmu_alloc_cntr() {
     smmu.hw.pmu->PMCFGR = pmcfgr;
 
     return num_cntr_groups;
+}
+
+void smmu_pmu_event_add(size_t cntr_group, size_t event) {
+    size_t counter_id = bit_ffz(*smmu.used_counters_bitmap);
+    bitmap_set(smmu.used_counters_bitmap, counter_id);
+
+    smmu_set_event_type(counter_id, event);
+    smmu_set_event_cntr(counter_id, 0);
+    smmu_event_ctr_ovf_clr(counter_id);
 }

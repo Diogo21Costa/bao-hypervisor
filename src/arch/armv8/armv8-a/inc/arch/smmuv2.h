@@ -444,6 +444,7 @@ struct smmu_pmu_hw {
 
 } __attribute__((__packed__, __aligned__(PAGE_SIZE)));
 
+
 typedef deviceid_t streamid_t;
 
 void smmu_init();
@@ -472,5 +473,8 @@ void smmu_pmu_interrupt_enable(size_t counter, irq_handler_t handler);
 uint32_t smmu_read_counter(size_t counter);
 
 void smmu_events_init(size_t ctx_id);
+
+uint32_t smmu_pmu_init();
+void smmu_pmu_event_add(size_t cntr_group, size_t event);
 
 #endif
