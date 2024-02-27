@@ -54,6 +54,19 @@
         }                                                                        \
         return (mask != 0U) ? pos : (ssize_t)-1;                                 \
     }                                                                            \
+    static inline ssize_t PRE##_ffz(TYPE word)                                   \
+    {                                                                            \
+        ssize_t pos = (ssize_t)0;                                                \
+        TYPE mask = (LIT);                                                       \
+        while (mask != 0U) {                                                     \
+            if ((mask & ~word) != 0U) {                                          \
+                break;                                                           \
+            }                                                                    \
+            mask <<= 1U;                                                         \
+            pos++;                                                               \
+        }                                                                        \
+        return (mask != 0U) ? pos : (ssize_t)-1;                                 \
+    }                                                                            \
     static inline ssize_t PRE##_count(TYPE word)                                 \
     {                                                                            \
         size_t count = 0;                                                        \
