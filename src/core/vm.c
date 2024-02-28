@@ -270,11 +270,17 @@ struct vm* vm_init(struct vm_allocation* vm_alloc, const struct vm_config* confi
         vm_init_ipc(vm, config);
 
         // smmu_events_init(vm->io.prot.mmu.ctx_id);
-        uint32_t counter_group_id = smmu_pmu_init();
-        console_printk("smmu counter_group_id: %d\n", counter_group_id);
+        #define SMMU_TBU0_CNTR_GROUP    0
+        #define SMMU_TBU1_CNTR_GROUP    1
+        #define SMMU_TBU2_CNTR_GROUP    2
+        #define SMMU_TBU3_CNTR_GROUP    3
+        #define SMMU_TBU4_CNTR_GROUP    4
+        #define SMMU_TBU5_CNTR_GROUP    5
 
-        size_t event = 0;
-        smmu_pmu_event_add(counter_group_id, event);
+        smmu_pmu_init(SMMU_TBU2_CNTR_GROUP);
+
+        size_t event = 0x0010;
+        smmu_pmu_event_add(SMMU_TBU2_CNTR_GROUP, event);
 
     }
 
