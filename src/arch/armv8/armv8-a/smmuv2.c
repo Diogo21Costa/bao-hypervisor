@@ -591,18 +591,15 @@ enum smmu_pmu_filter {
     smmu_pmu_filter_reserved = 0b11         // Reserved
 };
 
-uint32_t smmu_pmu_init() {
-    size_t counter_group_id = bit_ffz(*smmu.used_counter_groups_bitmap);
-    bitmap_set(smmu.used_counter_groups_bitmap, counter_group_id);
+void smmu_pmu_init(size_t cntr_group_id) {
+    // size_t counter_group_id = bit_ffz(*smmu.used_counter_groups_bitmap);
+    // bitmap_set(smmu.used_counter_groups_bitmap, counter_group_id);
 
     // Setup SMMU PMU filtering
-    smmu_pmu_config_cntr_group(counter_group_id);
+    smmu_pmu_config_cntr_group(cntr_group_id);
     // size_t ctxt_bank_id = smmu_cntr_grp_ctx_bank(counter_group_id);
 
     // console_printk("ctxt_bank_id = %d\n", ctxt_bank_id);
-
-    return counter_group_id;
-    // maybe here return the ctxt_bank_id ? 
 }
 
 /*************************************************************************************************** [Begin] Configure Counter Group*/
