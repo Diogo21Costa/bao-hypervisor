@@ -370,65 +370,21 @@ void smmu_write_s2c(size_t sme, size_t ctx_id)
     spin_unlock(&smmu.sme_lock);
 }
 
-size_t smmu_implemented_event_cntrs() {
-    size_t pmcfgr = smmu.hw.cntxt[0].PMCFGR;
-    pmcfgr = pmcfgr & SMMU_PMCFGR_N_MASK;
-    return pmcfgr;
-}
+// bool smmu_is_valid_event(uint32_t smmu_event) {
+//     for (enum smmuv2_pmu_events event = SMMU_PME_CYCLE_COUNT; event <= SMMU_PME_ACC_WRITE; event++) {
+//         if (smmu_event == event) {
+//             return true;
+//         }
+//     }
 
-size_t implemented_cntr_groups() {
-    size_t pmcfgr = smmu.hw.cntxt[0].PMCFGR;
-    pmcfgr = pmcfgr & SMMU_PMCFGR_NCG_MASK;
-    return pmcfgr;
-}
-
-bool smmu_is_valid_event(uint32_t smmu_event) {
-    for (enum smmuv2_pmu_events event = SMMU_PME_CYCLE_COUNT; event <= SMMU_PME_ACC_WRITE; event++) {
-        if (smmu_event == event) {
-            return true;
-        }
-    }
-
-    return false;
-}
+//     return false;
+// }
 
 // Dummy IRQ Handler
 void smmu_irq_handler(){
     return;
 }
 
-bool smmu_setup_counter(size_t ctx_id, size_t counter_id, uint32_t smmu_event, bool en_irq) {
-    counter_id = smmu_implemented_event_cntrs() + 1;
-    if (counter_id >= SMMU_PMU_MAX_COUNTERS) {
-        return false;
-    }
-
-    if (!smmu_is_valid_event(smmu_event)) {
-        return false;
-    }
-    /*
-    Procedure:
-        1. Set evente type
-        2. Set counter
-        3. Clear counter overflows
-        4. Set IRQ callback (optional)
-        5. Enable the IRQ (only if 4. is performed)
-    */
-
-    smmu_set_event_type(counter_id, smmu_event);
-
-    // smmu_set_event_cntr(counter_id, UINT32_MAX);
-    smmu_set_event_cntr(counter_id, 10);
-    
-    smmu_event_ctr_ovf_clr(counter_id);
-
-    if(en_irq) {
-        smmu_pmu_interrupt_enable(counter_id, smmu_irq_handler);
-    }
-
-    return true;
-
-}
 
 void smmu_set_event_type(size_t counter, size_t event){
 
@@ -490,76 +446,10 @@ void smmu_pmu_interrupt_enable(size_t counter, irq_handler_t handler){
     smmu.hw.cntxt[0].PMINTENSET = pmintenset;
 }
 
-void smmu_events_init(size_t ctx_id) {
-
-    // smmu_enable_pmc(ctx_id);
-
-    size_t counter_id = 0;
-    uint32_t event = SMMU_PME_TLB_ENTRY_WRITE;
-
-    console_printk("vm ctx_id: %d\n", ctx_id);
-
-    smmu_setup_counter(ctx_id, counter_id, event, true);
-    
-    uint32_t counter_val = 0;
-    counter_val = smmu_read_counter(counter_id);
-    counter_val += 1;
-    console_printk("counter_val: %d\n", counter_val);
-}
-
-uint32_t smmu_read_counter(size_t counter){
-    return smmu.hw.cntxt[0].PMEVCNTRm[counter];
-}
-
-// void smmu_enable_pmc(size_t ctx_id/*, size_t counter_id*/) {
-
-//     size_t counter_id = 0;
-//     spin_lock(&smmu.ctx_lock);
-
-//     uint32_t pmcgcr = smmu.hw.pmu->PMCFGR[counter_id];
-//     pmcgcr = bit32_set(pmcgcr, SMMU_PMCGCR_CBAEN_OFF);
-
-//     pmcgcr = bit32_insert(pmcgcr, ctx_id, SMMU_PMCGCR_NDX_OFF, SMMU_PMCGCR_NDX_LEN);
-
-//     uint32_t pmcr = smmu.hw.cntxt[ctx_id].PMCR;
-
-//     // enable export of events
-//     pmcr = bit32_set(pmcr, SMMU_PMCR_X_OFF);
-
-//     // reset all event counters to zero
-//     pmcr = bit32_set(pmcr, SMMU_PMCR_P_OFF);
-
-//     // enable all counters
-//     pmcr = bit32_set(pmcr, SMMU_PMCR_E_OFF);
-
-//     smmu.hw.cntxt[ctx_id].PMCR = pmcr;
-//     spin_unlock(&smmu.ctx_lock);
-
-//     console_printk("pmcr: %d\n", pmcr);
-//     console_printk("smmu.hw.cntxt[ctx_id].PMCR: %d\n", smmu.hw.cntxt[ctx_id].PMCR);
-// }
-
-
-// uint32_t smmu_alloc_counter(size_t ctx_id) {
-//     spin_lock(&smmu.ctx_lock);
-
-//     // Get number of implemented counters
-//     size_t implement_cntrs = smmu_implemented_event_cntrs();
-
-//     uint32_t pmcgcr = smmu.hw.pmu->PMCFGR[implement_cntrs];
-
-//     spin_unlock(&smmu.ctx_lock);
-
-// }
 
 /******************************************************************************* Clean Code frome here*/
 /******************************************************************************/
 /******************************************************************************/
-
-// #define SMMU_PMU_MAX_EVENT_CNTRS    (256)
-// #define SMMU_PMU_MAX_CNTR_GROUPS    (256)
-// #define SMMU_PMUX_MAX_CNTR_PER_GRP  (15)
-
 
 // void smmu_pmu_init();
 void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id);
@@ -582,14 +472,7 @@ enum smmu_pmu_filter {
 };
 
 void smmu_pmu_init(size_t cntr_group_id) {
-    // size_t counter_group_id = bit_ffz(*smmu.used_counter_groups_bitmap);
-    // bitmap_set(smmu.used_counter_groups_bitmap, counter_group_id);
-
-    // Setup SMMU PMU filtering
     smmu_pmu_config_cntr_group(cntr_group_id);
-    // size_t ctxt_bank_id = smmu_cntr_grp_ctx_bank(counter_group_id);
-
-    // console_printk("ctxt_bank_id = %d\n", ctxt_bank_id);
 }
 
 /*************************************************************************************************** [Begin] Configure Counter Group*/
@@ -703,43 +586,10 @@ void smmu_cb_pmc_enable_export(size_t ctxt_id) {
     smmu.hw.cntxt[ctxt_id].PMCR = pmcr;
 }
 
-// void smmu_pmu_event_add(){
-//     uint32_t cntr_grp_idx = 0;
-//     uint32_t cntr_idx = 0;
-
-    
-// }
-
-
-// // ssize_t gic_cpu_id = bit32_ffs(sgi_targets);
-
-// PMCFGR, Performance Monitors Configuration Register
-
 
 /*************************************************************************************************** [End] Configure Counter*/
 /**************************************************************************************************/
 
-uint32_t smmu_pmu_alloc_cntr_grp() {
-    // Performance Monitors Configuration Register
-    uint32_t pmcfgr = smmu.hw.pmu->PMCFGR;
-    uint32_t num_cntr_groups = pmcfgr & SMMU_PMCFGR_NCG_MASK;
-    
-    pmcfgr = bit32_insert(pmcfgr, num_cntr_groups+1, SMMU_PMCFGR_NCG_OFF, SMMU_PMCFGR_NCG_LEN);
-    smmu.hw.pmu->PMCFGR = pmcfgr;
-
-    return num_cntr_groups;
-}
-
-uint32_t smmu_pmu_alloc_cntr() {
-    // Performance Monitors Configuration Register
-    uint32_t pmcfgr = smmu.hw.pmu->PMCFGR;
-    uint32_t num_cntr_groups = pmcfgr & SMMU_PMCFGR_N_MASK;
-    
-    pmcfgr = bit32_insert(pmcfgr, num_cntr_groups+1, SMMU_PMCFGR_N_OFF, SMMU_PMCFGR_N_LEN);
-    smmu.hw.pmu->PMCFGR = pmcfgr;
-
-    return num_cntr_groups;
-}
 
 #define CNTRS_PER_GROUP     4
 void smmu_pmu_event_add(size_t cntr_group, size_t event) {
