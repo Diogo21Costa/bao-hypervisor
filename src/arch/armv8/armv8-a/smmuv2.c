@@ -754,8 +754,13 @@ uint32_t smmu_pmu_alloc_cntr() {
     return num_cntr_groups;
 }
 
+#define CNTRS_PER_GROUP     4
 void smmu_pmu_event_add(size_t cntr_group, size_t event) {
-    size_t counter_id = bit_ffz(*smmu.used_counters_bitmap);
+    
+    size_t cntr_group_offset = cntr_group*CNTRS_PER_GROUP;
+    size_t cntg_group_limit = cntr_group_offset + CNTRS_PER_GROUP;
+
+    ssize_t counter_id = bitmap_find_nth(smmu.used_counters_bitmap, cntg_group_limit, 1, cntr_group_offset, false);
     bitmap_set(smmu.used_counters_bitmap, counter_id);
 
     smmu_set_event_type(counter_id, event);
