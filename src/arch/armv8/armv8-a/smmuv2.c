@@ -433,9 +433,7 @@ bool smmu_setup_counter(size_t ctx_id, size_t counter_id, uint32_t smmu_event, b
 void smmu_set_event_type(size_t counter, size_t event){
 
     // PMEVTYPERn, Performance Monitors Event Type Registers
-    // uint32_t pmevtyper = smmu.hw.cntxt->PMEVTYPERm[counter];
-    uint32_t pmevtyper = smmu.hw.cntxt[0].PMEVTYPERm[counter];
-    // console_printk("pmevtyper: %d\n", pmevtyper);
+    uint32_t pmevtyper = smmu.hw.pmu->PMEVTYPERn[counter];
 
     /*  P, bit[31] Privileged transactions filtering bit. Controls the counting
     *   of Secure privileged transactions.
@@ -443,7 +441,6 @@ void smmu_set_event_type(size_t counter, size_t event){
     *       1 Do not count events relating to Secure privileged transactions.
     */
     pmevtyper = bit32_clear(pmevtyper, SMMU_PMEVTYPER_P_OFF);
-    // console_printk("pmevtyper: %d\n", pmevtyper);
 
     /*  U, bit[30] Unprivileged transactions filtering bit. Controls the
     *    counting of Secure unprivileged transactions.
@@ -451,7 +448,6 @@ void smmu_set_event_type(size_t counter, size_t event){
     *       1 Do not count events relating to Secure unprivileged transactions.
     */
     pmevtyper = bit32_clear(pmevtyper, SMMU_PMEVTYPER_U_OFF);
-    // console_printk("pmevtyper: %d\n", pmevtyper);
 
     /*  NSP, bit[29] Non-secure Privileged transactions filtering bit. Controls
     *   the counting of Non-secure privileged transactions.
@@ -460,7 +456,6 @@ void smmu_set_event_type(size_t counter, size_t event){
     *           transactions.
     */
     pmevtyper = bit32_set(pmevtyper, SMMU_PMEVTYPER_NSP_OFF);
-    // console_printk("pmevtyper: %d\n", pmevtyper);
 
     /*   NSU, bit[28] Non-secure unprivileged transactions filtering bit.
     *    Controls counting of Non-secure unprivileged transactions.
@@ -471,14 +466,9 @@ void smmu_set_event_type(size_t counter, size_t event){
     *            bit. Controls counting of Non-secure unprivileged transactions.
     */
     pmevtyper = bit32_set(pmevtyper, SMMU_PMEVTYPER_NSU_OFF);
-    console_printk("pmevtyper: %d\n", pmevtyper);
 
     pmevtyper = bit32_insert(pmevtyper, event, SMMU_PMEVTYPER_EVENT_OFF, SMMU_PMEVTYPER_EVENT_LEN);
-    
-    smmu.hw.cntxt[0].PMEVTYPERm[counter] = pmevtyper;
-    console_printk("pmevtyper: %d\n", pmevtyper);
-    console_printk("smmu.hw.cntxt[0].PMEVTYPERm[counter]: %d\n", smmu.hw.cntxt[0].PMEVTYPERm[counter]);
-
+    smmu.hw.pmu->PMEVTYPERn[counter] = pmevtyper;
 }
 
 void smmu_set_event_cntr(size_t counter, size_t value){
