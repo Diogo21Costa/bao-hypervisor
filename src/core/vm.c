@@ -268,6 +268,20 @@ struct vm* vm_init(struct vm_allocation* vm_alloc, const struct vm_config* confi
         vm_init_mem_regions(vm, config);
         vm_init_dev(vm, config);
         vm_init_ipc(vm, config);
+
+        // smmu_events_init(vm->io.prot.mmu.ctx_id);
+        #define SMMU_TBU0_CNTR_GROUP    0
+        #define SMMU_TBU1_CNTR_GROUP    1
+        #define SMMU_TBU2_CNTR_GROUP    2
+        #define SMMU_TBU3_CNTR_GROUP    3
+        #define SMMU_TBU4_CNTR_GROUP    4
+        #define SMMU_TBU5_CNTR_GROUP    5
+
+        smmu_pmu_init(SMMU_TBU2_CNTR_GROUP);
+
+        size_t event = 0x0010;
+        smmu_pmu_event_add(SMMU_TBU2_CNTR_GROUP, event);
+
     }
 
     cpu_sync_and_clear_msgs(&vm->sync);

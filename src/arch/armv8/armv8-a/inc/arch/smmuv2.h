@@ -7,6 +7,7 @@
 #define __ARCH_SMMUV2_H__
 
 #include <bao.h>
+#include <interrupts.h>
 
 #define SMMUV2_CR0_GFRE                 (0x1 << 1)
 #define SMMUV2_CR0_GFIE                 (0x1 << 2)
@@ -110,6 +111,45 @@
 /* Don't clear implementation defined bits, clear everything else. */
 #define S2CR_CLEAR(s2cr)                (s2cr & S2CR_IMPL_MASK)
 #define S2CR_DFLT                       (0)
+
+/* SMMU Performance Monitors Extension Event Classes */
+enum smmuv2_pmu_events {
+    SMMU_PME_CYCLE_COUNT = 0x0000,      // Cycle count, occurs every SMMU clock cycle
+    SMMU_PME_CYCLE_COUNT_64 = 0x0001,   // Cycle count divided by 64 event, occurs every 64th SMMU clock cycle
+    SMMU_PME_TLB_ENTRY_ALLOC = 0x0008,  // TLB Entry Allocated, occurs when an SMMU allocates a TLB entry to load a translation
+    SMMU_PME_TLB_ENTRY_READ = 0x0009,   // TLB Entry Allocated for a Read or far-atomic
+    SMMU_PME_TLB_ENTRY_WRITE = 0x000A,  // TLB Entry Allocated for a Write
+    SMMU_PME_ACC = 0x0010,              // Access, occurs when an SMMU processes a new transaction
+    SMMU_PME_ACC_READ = 0x0011,         // Access Read
+    SMMU_PME_ACC_WRITE = 0x0012         // Access Write
+};
+
+// #define SMMU_PMU_MAX_COUNTERS           (15)
+
+#define SMMU_PMCR_X_OFF                 (4)
+#define SMMU_PMCR_X_LEN                 (1)
+
+#define SMMU_PMCR_P_OFF                 (1)
+#define SMMU_PMCR_P_LEN                 (1)
+
+#define SMMU_PMCR_E_OFF                 (0)
+#define SMMU_PMCR_E_LEN                 (1)
+
+#define SMMU_PMCFGR_N_OFF               (0)
+#define SMMU_PMCFGR_N_LEN               (8)
+#define SMMU_PMCFGR_N_MASK              BIT32_MASK(SMMU_PMCFGR_N_OFF, SMMU_PMCFGR_N_LEN)
+
+#define SMMU_PMCFGR_NCG_OFF             (24)
+#define SMMU_PMCFGR_NCG_LEN             (8)
+#define SMMU_PMCFGR_NCG_MASK            BIT32_MASK(SMMU_PMCFGR_NCG_OFF, SMMU_PMCFGR_NCG_LEN)
+
+#define SMMU_PMCGCR_CGNC_OFF        (24)
+#define SMMU_PMCGCR_CGNC_LEN        (4)
+
+#define SMMU_PMCGCR_NDX_OFF         (0)
+#define SMMU_PMCGCR_NDX_LEN         (8)
+#define SMMU_PMCGCR_CBAEN_OFF       (10)
+#define SMMU_PMCGCR_CBAEN_LEN       (1)
 
 struct smmu_glbl_rs0_hw {
     uint32_t CR0;
@@ -325,49 +365,85 @@ struct smmu_glbl_rs1_hw {
 #define SMMUV2_TCR_PS_48B          (0x5 << SMMUV2_TCR_PS_OFF)
 #define SMMUV2_TCR_PS_52B          (0x6 << SMMUV2_TCR_PS_OFF)
 
-struct smmu_cntxt_hw {
-    uint32_t SCTLR;
-    uint32_t ACTLR;
-    uint32_t RESUME;
-    uint8_t res1[0x20 - 0xc];
-    uint64_t TTBR0;
-    uint8_t res2[0x30 - 0x28];
-    uint32_t TCR;
-    uint8_t res3[0x58 - 0x34];
-    uint32_t FSR;
-    uint32_t FSRRESTORE;
-    uint64_t FAR;
-    uint32_t FSYNR0;
-    uint32_t FSYNR1;
-    uint64_t IPAFAR;
-    uint8_t res4[0x630 - 0x78];
-    uint64_t TLBIIPAS2;
-    uint64_t TLBIIPAS2L;
-    uint8_t res5[0x7f0 - 0x640];
-    uint32_t TLBSYNC;
-    uint32_t TLBSTATUS;
-    uint8_t res6[0xe00 - 0x7f8];
-    uint32_t PMEVCNTRm;
-    uint8_t res7[0xe80 - 0xe3c];
-    uint32_t PMEVTYPERm;
-    uint8_t res8[0xf00 - 0xebc];
-    uint32_t PMCFGR;
-    uint32_t PMCR;
-    uint8_t res9[0xf20 - 0xf08];
-    uint32_t PMCEID0;
-    uint32_t PMCEID1;
-    uint8_t res10[0xf40 - 0xf28];
-    uint32_t PMCNTENSET;
-    uint32_t PMCNTENCLR;
-    uint32_t PMINTENSET;
-    uint32_t PMINTENCLR;
-    uint32_t PMOVSCLR;
-    uint8_t res11[0xf58 - 0xf54];
-    uint32_t PMOVSSET;
-    uint8_t res12[0xfb8 - 0xf5c];
-    uint32_t PMAUTHSTATUS;
-    uint8_t res13[];
+#define SMMMU_MAX_GROUP_CNTRS      (15)
+struct smmu_cntxt_hw {          
+    uint32_t SCTLR;                                 // 0x00000
+    uint32_t ACTLR;                                 // 0x00004
+    uint32_t RESUME;                                // 0x00008
+    uint8_t res1[0x20 - 0xc];                       // 0x0000C
+    uint64_t TTBR0;                                 // 0x00020
+    uint8_t res2[0x30 - 0x28];                      // 0x00028
+    uint32_t TCR;                                   // 0x00030
+    uint8_t res3[0x58 - 0x34];                      // 0x00034
+    uint32_t FSR;                                   // 0x00058
+    uint32_t FSRRESTORE;                            // 0x0005C
+    uint64_t FAR;                                   // 0x00060
+    uint32_t FSYNR0;                                // 0x00068
+    uint32_t FSYNR1;                                // 0x0006C
+    uint64_t IPAFAR;                                // 0x00070
+    uint8_t res4[0x630 - 0x78];                     // 0x00078
+    uint64_t TLBIIPAS2;                             // 0x00630
+    uint64_t TLBIIPAS2L;                            // 0x00638
+    uint8_t res5[0x7f0 - 0x640];                    // 0x00640
+    uint32_t TLBSYNC;                               // 0x007F0
+    uint32_t TLBSTATUS;                             // 0x007F4
+    uint8_t res6[0xe00 - 0x7f8];                    // 0x007F8
+    uint32_t PMEVCNTRm[SMMMU_MAX_GROUP_CNTRS];      // 0x00E00
+    uint8_t res7[0xe80 - 0xe3c];                    // 0x00E3C
+    uint32_t PMEVTYPERm[SMMMU_MAX_GROUP_CNTRS];     // 0x00E80
+    uint8_t res8[0xf00 - 0xebc];                    // 0x00EBC
+    uint32_t PMCFGR;                                // 0x00F00
+    uint32_t PMCR;                                  // 0x00F04
+    uint8_t res9[0xf20 - 0xf08];                    // 0x00F08
+    uint32_t PMCEID0;                               // 0x00F20
+    uint32_t PMCEID1;                               // 0x00F24
+    uint8_t res10[0xf40 - 0xf28];                   // 0x00F28
+    uint32_t PMCNTENSET;                            // 0x00F40
+    uint32_t PMCNTENCLR;                            // 0x00F44
+    uint32_t PMINTENSET;                            // 0x00F48
+    uint32_t PMINTENCLR;                            // 0x00F4C
+    uint32_t PMOVSCLR;                              // 0x00F50
+    uint8_t res11[0xf58 - 0xf54];                   // 0x00F54
+    uint32_t PMOVSSET;                              // 0x00F58
+    uint8_t res12[0xfb8 - 0xf5c];                   // 0x00F5C
+    uint32_t PMAUTHSTATUS;                          // 0x00FB8
+    uint8_t res13[];                                // 0x00FBC
 } __attribute__((__packed__, __aligned__(PAGE_SIZE)));
+
+#define SMMU_PMU_MAX_COUNTERS           (256)
+#define SMMU_PMU_MAX_X                  (8)
+#define SMMU_PMUID_SIZE                 (11)
+
+#define SMMU_PMU_MAX_EVENT_CNTRS    (256)
+#define SMMU_PMU_MAX_CNTR_GROUPS    (128)
+#define SMMU_PMUX_MAX_CNTR_PER_GRP  (15)
+
+struct smmu_pmu_hw {          
+    uint32_t PMEVCNTRn[SMMU_PMU_MAX_COUNTERS];      // 0x00000
+    uint32_t PMEVTYPERn[SMMU_PMU_MAX_COUNTERS];     // 0x00400
+    uint32_t PMCGCRn[SMMU_PMU_MAX_CNTR_GROUPS];     // 0x00800
+    uint32_t PMCGSMRn[SMMU_PMU_MAX_CNTR_GROUPS];    // 0x00A00
+    uint32_t PMCNTENSETx[SMMU_PMU_MAX_X];           // 0x00C00
+    uint32_t PMCNTENCLRx[SMMU_PMU_MAX_X];           // 0x00C20
+    uint32_t PMINTENSETx[SMMU_PMU_MAX_X];           // 0x00C40
+    uint32_t PMINTENCLRx[SMMU_PMU_MAX_X];           // 0x00C60
+    uint32_t PMOVSCLRx[SMMU_PMU_MAX_X];             // 0x00C80
+    uint8_t res1[0xcc0 - 0xca0];                    // 0x00CA0
+    uint32_t PMOVSSETx[SMMU_PMU_MAX_X];             // 0x00CC0
+    uint8_t res2[0xe00 - 0xce0];                    // 0x00CE0
+    uint32_t PMCFGR;                                // 0x00E00
+    uint32_t PMCR;                                  // 0x00E04
+    uint8_t res3[0xe20 - 0xe08];                    // 0x00E08
+    uint32_t PMCEID0;                               // 0x00E20
+    uint32_t PMCEID1;                               // 0x00E24
+    uint8_t res4[0xfb8 - 0xe28];                    // 0x00E28
+    uint32_t PMAUTHSTATUS;                          // 0x00FB8
+    uint8_t res5[0xfcc- 0xfbc];                     // 0x00FBC
+    uint32_t PMDEVTYPE;                             // 0x00FCC
+    uint32_t PMPIDy_PMCIDz[SMMU_PMUID_SIZE];        // 0x00FD0
+
+} __attribute__((__packed__, __aligned__(PAGE_SIZE)));
+
 
 typedef deviceid_t streamid_t;
 
@@ -383,5 +459,14 @@ streamid_t smmu_sme_get_id(size_t sme);
 streamid_t smmu_sme_get_mask(size_t sme);
 bool smmu_sme_is_group(size_t sme);
 bool smmu_compatible_sme_exists(streamid_t mask, streamid_t id, size_t ctx, bool group);
+
+bool smmu_setup_counter(size_t ctx_id, size_t counter_id, uint32_t smmu_event, bool en_irq);
+void smmu_set_event_type(size_t counter, size_t event);
+void smmu_set_event_cntr(size_t counter, size_t value);
+void smmu_event_ctr_ovf_clr(size_t counter);
+
+
+void smmu_pmu_init(size_t cntr_group_id);
+void smmu_pmu_event_add(size_t cntr_group, size_t event);
 
 #endif
