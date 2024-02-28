@@ -474,7 +474,7 @@ uint32_t smmu_read_counter(size_t counter);
 
 void smmu_events_init(size_t ctx_id);
 
-uint32_t smmu_pmu_init();
+void smmu_pmu_init(size_t cntr_group_id);
 void smmu_pmu_event_add(size_t cntr_group, size_t event);
 
 #endif
