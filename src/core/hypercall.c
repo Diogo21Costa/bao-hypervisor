@@ -16,9 +16,18 @@ long int hypercall(unsigned long id)
     unsigned long arg1 = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(1));
     unsigned long arg2 = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(2));
 
+    unsigned long event, count;
+
     switch (id) {
         case HC_IPC:
             ret = ipc_hypercall(ipc_id, arg1, arg2);
+            break;
+        case HC_SMMU_PMU:
+            event = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(0));
+            count = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(1));
+            WARNING("SMMU PMU to be configured here with the following conditions:");
+            WARNING("event: %d", event);
+            WARNING("counter reset to: %d", count);
             break;
         default:
             WARNING("Unknown hypercall id %d", id);
