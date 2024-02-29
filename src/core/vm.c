@@ -277,11 +277,13 @@ struct vm* vm_init(struct vm_allocation* vm_alloc, const struct vm_config* confi
         #define SMMU_TBU4_CNTR_GROUP    4
         #define SMMU_TBU5_CNTR_GROUP    5
 
-        ssize_t ctx_id = vm->io.prot.mmu.ctx_id;
-        smmu_pmu_init(SMMU_TBU2_CNTR_GROUP, ctx_id);
+        size_t cpu_id = cpu()->id;
 
-        // size_t event = 0x0010;
-        // smmu_pmu_event_add(SMMU_TBU2_CNTR_GROUP, event);
+        // give the SMMU PMU counter group to the cpu_0
+        if(cpu_id == 0) {
+            ssize_t ctx_id = vm->io.prot.mmu.ctx_id;
+            smmu_pmu_init(SMMU_TBU2_CNTR_GROUP, ctx_id);
+        }
 
     }
 
