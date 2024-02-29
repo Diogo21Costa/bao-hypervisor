@@ -456,11 +456,11 @@ void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id);
 uint32_t smmu_pmu_alloc_cntr_grp();
 uint32_t smmu_pmu_alloc_cntr();
 
-void smmu_pmu_config_cntr_group(size_t counter_group_id);
+void smmu_pmu_config_cntr_group(size_t counter_group_id, size_t ctxbank);
 void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id);
 void smmu_en_pmc_event_export(size_t cntr_group_id);
 void smmu_en_pmc(size_t cntr_group_id);
-// void smmu_en_ctxbnk_assignment(size_t cntr_group_id);
+void smmu_en_ctxbnk_assignment(size_t cntr_group_id, size_t ctxbank);
 
 size_t smmu_cntr_grp_ctx_bank(size_t cntr_group_id);
 
@@ -471,8 +471,8 @@ enum smmu_pmu_filter {
     smmu_pmu_filter_reserved = 0b11         // Reserved
 };
 
-void smmu_pmu_init(size_t cntr_group_id) {
-    smmu_pmu_config_cntr_group(cntr_group_id);
+void smmu_pmu_init(size_t cntr_group_id, size_t ctxbank){
+    smmu_pmu_config_cntr_group(cntr_group_id, ctxbank);
 }
 
 /*************************************************************************************************** [Begin] Configure Counter Group*/
@@ -502,11 +502,11 @@ void smmu_pmu_init(size_t cntr_group_id) {
 #define SMMU_PMCGCR_NDX_LEN             (8)
 #define SMMU_PMCGCR_NDX_MASK            BIT32_MASK(SMMU_PMCGCR_NDX_OFF, SMMU_PMCGCR_NDX_LEN)
 
-void smmu_pmu_config_cntr_group(size_t counter_group_id) {
-    smmu_pmu_filtering(smmu_pmu_filter_glb, counter_group_id);
+void smmu_pmu_config_cntr_group(size_t counter_group_id, size_t ctxbank) {
+    smmu_pmu_filtering(smmu_pmu_filter_rest_trans_bnk, counter_group_id);
     smmu_en_pmc_event_export(counter_group_id);
     smmu_en_pmc(counter_group_id);
-    // smmu_en_ctxbnk_assignment(counter_group_id);
+    smmu_en_ctxbnk_assignment(counter_group_id, ctxbank);
 }
 
 void smmu_pmu_filtering(size_t filter_type, size_t cntr_group_id) {
@@ -528,9 +528,10 @@ void smmu_en_pmc(size_t cntr_group_id) {
     smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
 }
 
-void smmu_en_ctxbnk_assignment(size_t cntr_group_id) {
+void smmu_en_ctxbnk_assignment(size_t cntr_group_id, size_t ctxbank) {
     uint32_t pmcgcr = smmu.hw.pmu->PMCGCRn[cntr_group_id];
     pmcgcr = bit32_set(pmcgcr, SMMU_PMCGCR_CBAEN_OFF);
+    pmcgcr = bit32_insert(pmcgcr, ctxbank, SMMU_PMCGCR_NDX_OFF, SMMU_PMCGCR_NDX_LEN);
     smmu.hw.pmu->PMCGCRn[cntr_group_id] = pmcgcr;
 }
 

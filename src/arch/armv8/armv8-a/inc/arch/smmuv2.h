@@ -471,7 +471,7 @@ void smmu_set_event_cntr(size_t counter, size_t value);
 void smmu_event_ctr_ovf_clr(size_t counter);
 
 
-void smmu_pmu_init(size_t cntr_group_id);
+void smmu_pmu_init(size_t cntr_group_id, size_t ctxbank);
 void smmu_pmu_event_add(size_t cntr_group, size_t event);
 
 #endif
