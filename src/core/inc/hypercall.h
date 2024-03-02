@@ -9,7 +9,7 @@
 #include <bao.h>
 #include <arch/hypercall.h>
 
-enum { HC_INVAL = 0, HC_IPC = 1, HC_SMMU_PMU_SETUP_CNTR = 2 };
+enum { HC_INVAL = 0, HC_IPC = 1, HC_SMMU_PMU_SETUP_CNTR = 2, HC_SMMU_PMU_EN_CNTR = 3 };
 
 enum { HC_E_SUCCESS = 0, HC_E_FAILURE = 1, HC_E_INVAL_ID = 2, HC_E_INVAL_ARGS = 3 };
 
