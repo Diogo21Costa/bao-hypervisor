@@ -482,4 +482,7 @@ void smmu_cb_setup_counter(size_t ctxt_id, size_t event, size_t counter);
 
 void smmu_cb_pmc_enable(size_t ctxt_id);
 void smmu_cb_pmc_reset(size_t ctxt_id);
+
+size_t smmu_cb_read_counter(size_t ctxt_id, size_t counter);
+
 #endif
