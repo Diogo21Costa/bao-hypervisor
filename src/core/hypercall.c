@@ -7,6 +7,7 @@
 #include <cpu.h>
 #include <vm.h>
 #include <ipc.h>
+#include <arch/smmuv2.h>
 
 long int hypercall(unsigned long id)
 {
@@ -16,18 +17,18 @@ long int hypercall(unsigned long id)
     unsigned long arg1 = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(1));
     unsigned long arg2 = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(2));
 
-    unsigned long event, count;
+    unsigned long event, counter;
+    ssize_t ctx_id;
 
     switch (id) {
         case HC_IPC:
             ret = ipc_hypercall(ipc_id, arg1, arg2);
             break;
-        case HC_SMMU_PMU:
+        case HC_SMMU_PMU_SETUP_CNTR:
             event = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(0));
-            count = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(1));
-            WARNING("SMMU PMU to be configured here with the following conditions:");
-            WARNING("event: %d", event);
-            WARNING("counter reset to: %d", count);
+            counter = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(1));
+            ctx_id = cpu()->vcpu->vm->io.prot.mmu.ctx_id;
+            smmu_cb_setup_counter(ctx_id, event, counter);
             break;
         default:
             WARNING("Unknown hypercall id %d", id);

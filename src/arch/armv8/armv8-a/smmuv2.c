@@ -587,6 +587,64 @@ void smmu_cb_pmc_enable_export(size_t ctxt_id) {
     smmu.hw.cntxt[ctxt_id].PMCR = pmcr;
 }
 
+void smmu_cb_set_event_type(size_t ctxt_id, size_t event, size_t counter) {
+     // PMEVTYPERn, Performance Monitors Event Type Registers
+    uint32_t pmevtyper = smmu.hw.cntxt[ctxt_id].PMEVTYPERm[counter];
+
+    /*  P, bit[31] Privileged transactions filtering bit. Controls the counting
+    *   of Secure privileged transactions.
+    *       0 Count events relating to Secure privileged transactions.
+    *       1 Do not count events relating to Secure privileged transactions.
+    */
+    pmevtyper = bit32_clear(pmevtyper, SMMU_PMEVTYPER_P_OFF);
+
+    /*  U, bit[30] Unprivileged transactions filtering bit. Controls the
+    *    counting of Secure unprivileged transactions.
+    *       0 Count events relating to Secure unprivileged transactions.
+    *       1 Do not count events relating to Secure unprivileged transactions.
+    */
+    pmevtyper = bit32_clear(pmevtyper, SMMU_PMEVTYPER_U_OFF);
+
+    /*  NSP, bit[29] Non-secure Privileged transactions filtering bit. Controls
+    *   the counting of Non-secure privileged transactions.
+    *       P==NSP Count events relating to Non-secure privileged transactions.
+    *       P!=NSP Do not count events relating to Non-secure privileged 
+    *           transactions.
+    */
+    pmevtyper = bit32_set(pmevtyper, SMMU_PMEVTYPER_NSP_OFF);
+
+    /*   NSU, bit[28] Non-secure unprivileged transactions filtering bit.
+    *    Controls counting of Non-secure unprivileged transactions.
+    *        U==NSU Count events relating to Non-secure unprivileged 
+    *           transactions.
+    *        U!=NSU Do not count events relating to Non-secure unprivileged 
+    *            transactions.Non-secure unprivileged transactions filtering
+    *            bit. Controls counting of Non-secure unprivileged transactions.
+    */
+    pmevtyper = bit32_set(pmevtyper, SMMU_PMEVTYPER_NSU_OFF);
+
+    pmevtyper = bit32_insert(pmevtyper, event, SMMU_PMEVTYPER_EVENT_OFF, SMMU_PMEVTYPER_EVENT_LEN);
+    smmu.hw.cntxt[ctxt_id].PMEVTYPERm[counter] = pmevtyper;
+}
+
+
+void smmu_cb_set_event_cntr(size_t ctxt_id, size_t counter, size_t val){
+    smmu.hw.cntxt[ctxt_id].PMEVCNTRm[counter] = val;
+}
+
+void smmu_cb_event_ctr_ovf_clr(size_t ctxt_id, size_t counter){
+    uint32_t pmovsclr = smmu.hw.cntxt[ctxt_id].PMOVSCLR;
+    pmovsclr = bit32_clear(pmovsclr, counter);
+    smmu.hw.cntxt[ctxt_id].PMOVSCLR = pmovsclr;
+}
+
+
+void smmu_cb_setup_counter(size_t ctxt_id, size_t event, size_t counter) {
+    smmu_cb_set_event_type(ctxt_id, event, counter);
+    smmu_cb_set_event_cntr(ctxt_id, counter, 0);
+    smmu_cb_event_ctr_ovf_clr(ctxt_id, counter);
+
+}
 
 /*************************************************************************************************** [End] Configure Counter*/
 /**************************************************************************************************/
