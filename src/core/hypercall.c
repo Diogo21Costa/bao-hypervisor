@@ -38,6 +38,11 @@ long int hypercall(unsigned long id)
             ctx_id = cpu()->vcpu->vm->io.prot.mmu.ctx_id;
             smmu_cb_pmc_reset(ctx_id);
             break;
+        case HC_SMMU_PMU_READ_CNTR:
+            counter = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(0));
+            ctx_id = cpu()->vcpu->vm->io.prot.mmu.ctx_id;
+            ret = smmu_cb_read_counter(ctx_id, counter);
+            break;
         default:
             WARNING("Unknown hypercall id %d", id);
     }
