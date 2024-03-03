@@ -472,6 +472,7 @@ enum smmu_pmu_filter {
 };
 
 void smmu_pmu_init(size_t cntr_group_id, size_t ctxbank){
+    smmu_pmc_enable();
     smmu_pmu_config_cntr_group(cntr_group_id, ctxbank);
 }
 
@@ -502,10 +503,23 @@ void smmu_pmu_init(size_t cntr_group_id, size_t ctxbank){
 #define SMMU_PMCGCR_NDX_LEN             (8)
 #define SMMU_PMCGCR_NDX_MASK            BIT32_MASK(SMMU_PMCGCR_NDX_OFF, SMMU_PMCGCR_NDX_LEN)
 
+#define SMMU_PMCR_E_OFF                 (0)
+#define SMMU_PMCR_E_LEN                 (1)
+
+#define SMMU_PMCR_X_OFF                 (4)
+#define SMMU_PMCR_X_LEN                 (1)
+
+void smmu_pmc_enable() {
+    uint32_t pmcr = smmu.hw.pmu->PMCR;
+    pmcr = bit32_set(pmcr, SMMU_PMCR_E_OFF);
+    pmcr = bit32_set(pmcr, SMMU_PMCR_X_OFF);
+    smmu.hw.pmu->PMCR = pmcr;
+}
+
 void smmu_pmu_config_cntr_group(size_t counter_group_id, size_t ctxbank) {
     smmu_pmu_filtering(smmu_pmu_filter_rest_trans_bnk, counter_group_id);
     smmu_en_pmc_event_export(counter_group_id);
-    smmu_en_pmc(counter_group_id);
+    // smmu_en_pmc(counter_group_id);
     smmu_en_ctxbnk_assignment(counter_group_id, ctxbank);
 }
 
@@ -634,16 +648,22 @@ void smmu_cb_set_event_cntr(size_t ctxt_id, size_t counter, size_t val){
 
 void smmu_cb_event_ctr_ovf_clr(size_t ctxt_id, size_t counter){
     uint32_t pmovsclr = smmu.hw.cntxt[ctxt_id].PMOVSCLR;
-    pmovsclr = bit32_clear(pmovsclr, counter);
+    pmovsclr = bit32_set(pmovsclr, counter);
     smmu.hw.cntxt[ctxt_id].PMOVSCLR = pmovsclr;
 }
 
 
 void smmu_cb_setup_counter(size_t ctxt_id, size_t event, size_t counter) {
     smmu_cb_set_event_type(ctxt_id, event, counter);
-    smmu_cb_set_event_cntr(ctxt_id, counter, 0);
+    smmu_cb_set_event_cntr(ctxt_id, counter, 500);
     smmu_cb_event_ctr_ovf_clr(ctxt_id, counter);
+    // smmu_cb_pmc_enable(ctxt_id);
+}
 
+void smmu_cb_cntr_enable(size_t ctxt_id, size_t counter){
+    uint32_t pmcntenset = smmu.hw.cntxt[ctxt_id].PMCNTENSET;
+    pmcntenset = bit32_set(pmcntenset, counter);
+    smmu.hw.cntxt[ctxt_id].PMCNTENSET = pmcntenset;
 }
 
 size_t smmu_cb_read_counter(size_t ctxt_id, size_t counter) {
