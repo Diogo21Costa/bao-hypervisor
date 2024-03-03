@@ -25,14 +25,16 @@ long int hypercall(unsigned long id)
             ret = ipc_hypercall(ipc_id, arg1, arg2);
             break;
         case HC_SMMU_PMU_SETUP_CNTR:
-            event = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(0));
-            counter = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(1));
+            event = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(1));
+            counter = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(2));
             ctx_id = cpu()->vcpu->vm->io.prot.mmu.ctx_id;
             smmu_cb_setup_counter(ctx_id, event, counter);
             break;
         case HC_SMMU_PMU_EN_CNTRS:
+            counter = vcpu_readreg(cpu()->vcpu, HYPCALL_ARG_REG(0));
             ctx_id = cpu()->vcpu->vm->io.prot.mmu.ctx_id;
             smmu_cb_pmc_enable(ctx_id);
+            smmu_cb_cntr_enable(ctx_id, counter);
             break;
         case HC_SMMU_PMU_RST_CNTRS:
             ctx_id = cpu()->vcpu->vm->io.prot.mmu.ctx_id;
