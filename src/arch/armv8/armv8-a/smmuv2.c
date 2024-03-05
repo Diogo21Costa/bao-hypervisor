@@ -624,7 +624,7 @@ void smmu_cb_set_event_type(size_t ctxt_id, size_t event, size_t counter) {
     *       P!=NSP Do not count events relating to Non-secure privileged 
     *           transactions.
     */
-    pmevtyper = bit32_set(pmevtyper, SMMU_PMEVTYPER_NSP_OFF);
+    pmevtyper = bit32_clear(pmevtyper, SMMU_PMEVTYPER_NSP_OFF);
 
     /*   NSU, bit[28] Non-secure unprivileged transactions filtering bit.
     *    Controls counting of Non-secure unprivileged transactions.
@@ -634,7 +634,7 @@ void smmu_cb_set_event_type(size_t ctxt_id, size_t event, size_t counter) {
     *            transactions.Non-secure unprivileged transactions filtering
     *            bit. Controls counting of Non-secure unprivileged transactions.
     */
-    pmevtyper = bit32_set(pmevtyper, SMMU_PMEVTYPER_NSU_OFF);
+    pmevtyper = bit32_clear(pmevtyper, SMMU_PMEVTYPER_NSU_OFF);
 
     pmevtyper = bit32_insert(pmevtyper, event, SMMU_PMEVTYPER_EVENT_OFF, SMMU_PMEVTYPER_EVENT_LEN);
     smmu.hw.cntxt[ctxt_id].PMEVTYPERm[counter] = pmevtyper;
