@@ -519,7 +519,6 @@ void smmu_pmc_enable() {
 void smmu_pmu_config_cntr_group(size_t counter_group_id, size_t ctxbank) {
     smmu_pmu_filtering(smmu_pmu_filter_rest_trans_bnk, counter_group_id);
     smmu_en_pmc_event_export(counter_group_id);
-    // smmu_en_pmc(counter_group_id);
     smmu_en_ctxbnk_assignment(counter_group_id, ctxbank);
 }
 
