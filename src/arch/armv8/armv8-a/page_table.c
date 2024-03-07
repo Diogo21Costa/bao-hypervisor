@@ -30,7 +30,8 @@ struct page_table_dscr armv8_pt_dscr = {
     .lvls = 4,
     .lvl_wdt = (size_t[]){ 48, 39, 30, 21 },
     .lvl_off = (size_t[]){ 39, 30, 21, 12 },
-    .lvl_term = (bool[]){ false, true, true, true },
+    // .lvl_term = (bool[]){ false, true, true, true },
+    .lvl_term = (bool[]){false, false, false, true},
 };
 
 /**
@@ -41,7 +42,8 @@ struct page_table_dscr armv8_pt_s2_dscr = {
     .lvls = 4,
     .lvl_wdt = (size_t[]){ 48, 39, 30, 21 },
     .lvl_off = (size_t[]){ 39, 30, 21, 12 },
-    .lvl_term = (bool[]){ false, true, true, true },
+    // .lvl_term = (bool[]){ false, true, true, true },
+    .lvl_term = (bool[]){false, false, false, true},
 };
 
 #endif
