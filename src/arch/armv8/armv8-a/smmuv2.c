@@ -396,14 +396,14 @@ void smmu_set_event_type(size_t counter, size_t event){
     *       0 Count events relating to Secure privileged transactions.
     *       1 Do not count events relating to Secure privileged transactions.
     */
-    pmevtyper = bit32_clear(pmevtyper, SMMU_PMEVTYPER_P_OFF);
+    pmevtyper = bit32_set(pmevtyper, SMMU_PMEVTYPER_P_OFF);
 
     /*  U, bit[30] Unprivileged transactions filtering bit. Controls the
     *    counting of Secure unprivileged transactions.
     *       0 Count events relating to Secure unprivileged transactions.
     *       1 Do not count events relating to Secure unprivileged transactions.
     */
-    pmevtyper = bit32_clear(pmevtyper, SMMU_PMEVTYPER_U_OFF);
+    pmevtyper = bit32_set(pmevtyper, SMMU_PMEVTYPER_U_OFF);
 
     /*  NSP, bit[29] Non-secure Privileged transactions filtering bit. Controls
     *   the counting of Non-secure privileged transactions.
