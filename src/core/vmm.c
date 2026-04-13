@@ -12,6 +12,10 @@
 #include <string.h>
 #include <shmem.h>
 
+#ifdef CONFIG_PROFILER
+#include <profiler.h>
+#endif
+
 static struct vm_assignment {
     spinlock_t lock;
     struct cpu_synctoken root_sync;
@@ -139,6 +143,17 @@ void vmm_init()
     }
 
     cpu_sync_barrier(&cpu_glb_sync);
+
+    #ifdef CONFIG_PROFILER
+        if(config.en_out_of_core_profiler) {
+            profiler_manager_init(
+                config.out_of_core_profiler.num_target_cpus, 
+                config.out_of_core_profiler.num_profile_events, 
+                config.out_of_core_profiler.list_events,
+                cpu()->id
+            );
+        }
+    #endif
 
     bool master = false;
     vmid_t vm_id = INVALID_VMID;

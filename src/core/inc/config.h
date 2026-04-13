@@ -12,6 +12,10 @@
 #include <config_defs.h>
 #include <shmem.h>
 
+#ifdef CONFIG_PROFILER
+#include <profiler_config.h>
+#endif
+
 #ifndef GENERATING_DEFS
 // clang-format wont correctly recognize the syntax of assembly strings interleaved with
 // stringified tokens via XSTR and will format it in an unreadable way
@@ -133,6 +137,11 @@ extern struct config {
 
     /* The number of VMs specified by this configuration */
     size_t vmlist_size;
+
+    #ifdef CONFIG_PROFILER
+    bool en_out_of_core_profiler;
+    struct out_of_core_profiler_config out_of_core_profiler;
+    #endif
 
     /* Array list with VM configuration */
     struct vm_config* vmlist;

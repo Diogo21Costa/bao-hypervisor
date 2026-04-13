@@ -52,6 +52,10 @@ OPTIMIZATIONS:=2
 CONFIG=
 PLATFORM=
 
+# allow to define CONFIG_PROFILER from the command line, just need to run make with `make CONFIG_PROFILER=y` to enable it, by default it is disabled
+CONFIG_PROFILER?=n
+PROFILER_REPO?=$(cur_dir)/../bao_profiler
+
 # Setup version
 
 version_str:= $(shell git describe --always --dirty --tag --match "v*\.*\.*")
@@ -175,6 +179,33 @@ platform_description:=$(platform_dir)/$(platform_description)
 gens+=$(platform_defs) $(platform_def_generator)
 inc_dirs+=$(platform_build_dir)
 
+ifeq ($(CONFIG_PROFILER), y)
+override PROFILER_REPO:=$(realpath $(PROFILER_REPO))
+ifeq ($(PROFILER_REPO),)
+$(error Cant find profiler repository (PROFILER_REPO))
+endif
+
+profiler_platform_hdr:=$(PROFILER_REPO)/platform/$(PLATFORM).h
+ifeq ($(wildcard $(profiler_platform_hdr)),)
+$(error Cant find profiler platform header for $(PLATFORM) in $(PROFILER_REPO)/platform)
+endif
+
+ifeq ($(ARCH),armv8)
+profiler_arch_dir:=$(PROFILER_REPO)/arch/armv8-a
+else
+$(error CONFIG_PROFILER currently supports ARCH=armv8 only)
+endif
+
+inc_dirs+=$(profiler_arch_dir)/inc
+
+profiler-src-y+=core/profiler.c
+profiler-src-y+=core/profiler_hypercall.c
+profiler-src-y+=arch/armv8-a/snooper.c
+profiler-objs-y:=$(addprefix $(build_dir)/profiler/, $(patsubst %.c,%.o,$(profiler-src-y)))
+extra-objs-y+=$(profiler-objs-y)
+directories+=$(abspath $(dir $(profiler-objs-y)))
+endif
+
 # Setup list of objects for compilation
 -include $(addsuffix /objects.mk, $(src_dirs))
 
@@ -238,6 +269,10 @@ ifeq ($(CC_IS_GCC),y)
 	build_macros+=-DCC_IS_GCC
 else ifeq ($(CC_IS_CLANG),y)
 	build_macros+=-DCC_IS_CLANG
+endif
+
+ifeq ($(CONFIG_PROFILER), y)
+	build_macros+=-DCONFIG_PROFILER
 endif
 
 override CPPFLAGS+=$(addprefix -I, $(inc_dirs)) $(arch-cppflags) \
@@ -339,6 +374,18 @@ $(build_dir)%.d : %.[c,S]
 $(objs-y):
 	@echo "Compiling source	$(patsubst $(cur_dir)/%,%, $<)"
 	@$(cc) $(CFLAGS) -c $< -o $@
+
+ifeq ($(CONFIG_PROFILER), y)
+profiler-cflags:=$(filter-out -Werror -pedantic-errors -pedantic -Wall -Wextra \
+	$(cflags_warns) -Wno-unused-command-line-argument, $(CFLAGS))
+
+$(profiler-objs-y): | $(gens)
+
+$(build_dir)/profiler/%.o: $(PROFILER_REPO)/%.c
+	@echo "Compiling profiler	$(patsubst $(cur_dir)/%,%, $<)"
+	@mkdir -p $(@D)
+	@$(cc) $(profiler-cflags) -include $(profiler_platform_hdr) -c $< -o $@
+endif
 
 %.bin: %.elf
 	@echo "Generating binary	$(patsubst $(cur_dir)/%,%, $@)"

@@ -35,6 +35,10 @@ struct cpu {
 
     struct cpuif* interface;
 
+#ifdef CONFIG_PROFILER
+    vaddr_t profiler_manager;
+#endif
+
     uint8_t stack[STACK_SIZE] __attribute__((aligned(PAGE_SIZE)));
 
 } __attribute__((aligned(PAGE_SIZE)));
