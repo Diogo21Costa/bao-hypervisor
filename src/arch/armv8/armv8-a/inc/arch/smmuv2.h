@@ -381,5 +381,6 @@ void smmu_write_ctxbnk(size_t ctx_id, paddr_t root_pt, asid_t vm_id);
 void smmu_write_sme(size_t sme, streamid_t mask, streamid_t id, bool group);
 void smmu_write_s2c(size_t sme, size_t ctx_id);
 bool smmu_compatible_sme_exists(streamid_t mask, streamid_t id, size_t ctx, bool group);
+bool smmu_add_bypass_stream(streamid_t id);
 
 #endif

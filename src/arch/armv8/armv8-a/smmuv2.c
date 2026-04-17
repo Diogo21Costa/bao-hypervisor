@@ -344,3 +344,33 @@ void smmu_write_s2c(size_t sme, size_t ctx_id)
     }
     spin_unlock(&smmu.sme_lock);
 }
+
+bool smmu_add_bypass_stream(streamid_t id)
+{
+    streamid_t mask = 0;
+    bool group = false;
+
+    ssize_t sme = smmu_alloc_sme();
+    if (sme < 0) {
+        INFO("smmu: no free SME for bypass stream 0x%x", id);
+        return false;
+    }
+
+    size_t sme_idx = (size_t)sme;
+
+    smmu_write_sme(sme_idx, mask, id, group);
+
+    spin_lock(&smmu.sme_lock);
+
+    uint32_t s2cr = smmu.hw.glbl_rs0->S2CR[sme_idx];
+    s2cr = S2CR_CLEAR(s2cr);
+    s2cr |= S2CR_DFLT;
+    s2cr |= (0x1U << S2CR_TYPE_OFF);   /* BYPASS */
+    s2cr |= (0xffU & S2CR_CBNDX_MASK); /* no context bank */
+
+    smmu.hw.glbl_rs0->S2CR[sme_idx] = s2cr;
+
+    spin_unlock(&smmu.sme_lock);
+
+    return true;
+}

@@ -9,10 +9,16 @@
 #include <mem.h>
 #include <config.h>
 
+#define GEM3_STREAM_ID  0x877
+
 bool iommu_arch_init(void)
 {
     if (cpu_is_master() && platform.arch.smmu.base) {
         smmu_init();
+        if (!smmu_add_bypass_stream(GEM3_STREAM_ID)) {
+            ERROR("smmu: failed to add GEM3 bypass stream");
+        }
+
         return true;
     }
 
