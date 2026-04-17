@@ -47,6 +47,11 @@ struct platform platform = {
 
         .generic_timer = {
             .base_addr = 0xFF260000,
+            .timer_id = 26
+        },
+
+        .events = {
+            .events_irq_offset = 175,
         },
     },
 };

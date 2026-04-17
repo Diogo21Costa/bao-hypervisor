@@ -7,6 +7,9 @@
 #define GENERIC_TIMER_H
 
 #include <bao.h>
+#include <cpu.h>
+#include <interrupts.h>
+#include <platform.h>
 
 #define GENERIC_TIMER_CNTCTL_CNTCR_EN (0x1)
 
@@ -19,5 +22,28 @@ struct generic_timer_cntctrl {
     uint8_t res1[0xfd0 - 0x24];
     uint32_t CounterID[12];
 } __attribute__((packed, aligned(PAGE_SIZE)));
+
+uint64_t timer_arch_init(uint64_t period);
+void timer_arch_enable(void);
+void timer_arch_disable(void);
+
+void timer_arch_reschedule_interrupt(uint64_t count);
+uint64_t timer_arch_reschedule_interrupt_us(uint64_t period);
+
+static inline void timer_arch_define_irq_callback(irq_handler_t handler)
+{
+    static bool timer_irq_reserved = false;
+    static irqid_t timer_irq_id = INVALID_IRQID;
+
+    if (cpu_is_master() && !timer_irq_reserved) {
+        timer_irq_id = interrupts_reserve(platform.arch.generic_timer.timer_id, handler);
+        if (timer_irq_id == INVALID_IRQID) {
+            ERROR("Failed to assign generic timer interrupt");
+        }
+        timer_irq_reserved = true;
+    }
+
+    interrupts_cpu_enable(timer_irq_reserved ? timer_irq_id : platform.arch.generic_timer.timer_id, true);
+}
 
 #endif /* GENERIC_TIMER_H */

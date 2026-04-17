@@ -33,7 +33,12 @@ struct arch_platform {
     struct {
         paddr_t base_addr;
         uint32_t fixed_freq;
+        irqid_t timer_id;
     } generic_timer;
+
+    struct {
+        irqid_t events_irq_offset;
+    } events;
 
     struct clusters {
         size_t num;
