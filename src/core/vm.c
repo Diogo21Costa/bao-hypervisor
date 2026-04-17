@@ -11,6 +11,7 @@
 #include <shmem.h>
 #include <objpool.h>
 #include <list.h>
+#include <mem_throt.h>
 
 static void vm_master_init(struct vm* vm, const struct vm_config* vm_config, vmid_t vm_id)
 {
@@ -345,6 +346,7 @@ struct vm* vm_init(struct vm_allocation* vm_alloc, struct cpu_synctoken* vm_init
         vm_init_remio(vm, vm_config);
     }
 
+    mem_throt_init(vm_config->mem_throth.budget, vm_config->mem_throth.period_us);
     cpu_sync_and_clear_msgs(&vm->sync);
 
     return vm;
@@ -429,7 +431,7 @@ void vcpu_run(struct vcpu* vcpu)
             cpu_standby();
         }
     } else {
-        cpu_powerdown();
+        cpu_standby();
     }
 }
 

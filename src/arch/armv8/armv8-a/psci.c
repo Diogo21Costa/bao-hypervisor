@@ -87,9 +87,10 @@ int32_t psci_standby()
         return PSCI_E_SUCCESS;
     }
     /* only apply request to core level */
-    uint32_t pwr_state_aux = PSCI_POWER_STATE_LVL_0 | PSCI_STATE_TYPE_STANDBY;
+    // uint32_t pwr_state_aux = PSCI_POWER_STATE_LVL_0 | PSCI_STATE_TYPE_STANDBY;
 
-    return psci_cpu_suspend(pwr_state_aux, 0, 0);
+    // return psci_cpu_suspend(pwr_state_aux, 0, 0);
+    return 0;
 }
 
 int32_t psci_power_down()

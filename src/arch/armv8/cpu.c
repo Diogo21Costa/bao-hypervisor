@@ -9,6 +9,16 @@
 #include <arch/sysregs.h>
 #include <arch/core_impl.h>
 
+#include <arch/gic.h>
+
+#if (GIC_VERSION == GICV2)
+#include <arch/gicv2.h>
+#elif (GIC_VERSION == GICV3)
+#include <arch/gicv3.h>
+#else
+#error "unknown GIV version " GIC_VERSION
+#endif
+
 cpuid_t CPU_MASTER __attribute__((section(".datanocopy")));
 
 /* Perform architecture dependent cpu cores initializations */
@@ -22,6 +32,16 @@ void cpu_arch_init(cpuid_t cpuid, paddr_t load_addr)
 unsigned long cpu_id_to_mpidr(cpuid_t id)
 {
     return platform_arch_cpuid_to_mpidr(&platform, id);
+}
+
+void cpu_arch_interrupt_finish(void)
+{
+    if(cpu()->handling_irq)
+    {
+        gicc_eoir(cpu()->handling_irq_id);
+        gicc_dir(cpu()->handling_irq_id);
+        cpu()->handling_irq = false;
+    }
 }
 
 void cpu_arch_standby()

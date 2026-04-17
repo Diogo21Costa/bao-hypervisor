@@ -10,6 +10,8 @@
 #include <vm.h>
 #include <fences.h>
 
+void mem_throt_resume(void) __attribute__((weak));
+
 struct cpu_msg_node {
     node_t node;
     struct cpu_msg msg;
@@ -35,6 +37,8 @@ void cpu_init(cpuid_t cpu_id)
 {
     cpu()->id = cpu_id;
     cpu()->handling_msgs = false;
+    cpu()->handling_irq = false;
+    cpu()->handling_irq_id = 0;
     cpu()->interface = cpu_if(cpu()->id);
 
     cpu_arch_init(cpu_id, img_addr);
@@ -91,6 +95,10 @@ void cpu_msg_handler(void)
 
 void cpu_standby(void)
 {
+    if(cpu()->handling_irq) {
+        cpu_arch_interrupt_finish();
+    }
+
     cpu_arch_standby();
 
     /**
@@ -118,6 +126,10 @@ void cpu_standby_wakeup(void)
         cpu_msg_handler();
     }
 
+    if (mem_throt_resume != NULL) {
+        mem_throt_resume();
+    }
+
     if (cpu()->vcpu != NULL) {
         vcpu_run(cpu()->vcpu);
     } else {
@@ -130,6 +142,10 @@ void cpu_powerdown_wakeup(void)
     if (interrupts_ipi_check()) {
         interrupts_ipi_clear();
         cpu_msg_handler();
+    }
+
+    if (mem_throt_resume != NULL) {
+        mem_throt_resume();
     }
 
     if (cpu()->vcpu != NULL) {

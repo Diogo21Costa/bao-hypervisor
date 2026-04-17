@@ -99,6 +99,8 @@ void gic_handle()
 {
     uint32_t ack = gicc_iar();
     irqid_t id = bit32_extract(ack, GICC_IAR_ID_OFF, GICC_IAR_ID_LEN);
+    cpu()->handling_irq = true;
+    cpu()->handling_irq_id = ack;
 
     if (id < GIC_FIRST_SPECIAL_INTID) {
         enum irq_res res = interrupts_handle(id);
