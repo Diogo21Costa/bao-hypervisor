@@ -15,6 +15,12 @@ static inline void events_arch_cntr_free(size_t counter)
     pmu_cntr_free(counter);
 }
 
+static inline void events_arch_configure_counter_partition(size_t mem_throt_reserved,
+    size_t profiler_reserved)
+{
+    pmu_configure_counter_partition(mem_throt_reserved, profiler_reserved);
+}
+
 /* enable events */
 static inline void events_arch_enable(void)
 {

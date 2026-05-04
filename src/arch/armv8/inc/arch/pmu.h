@@ -22,12 +22,11 @@
 #define PMEVTYPER_MT         25UL
 #define PMEVTYPER_SH         24UL
 
-#define PMU_N_CNTR_GIVEN     1UL
-
 #define ERROR_NO_MORE_EVENT_COUNTERS ((ssize_t)-1)
 
 ssize_t pmu_cntr_alloc(void);
 void pmu_cntr_free(size_t counter);
+void pmu_configure_counter_partition(size_t mem_throt_reserved, size_t profiler_reserved);
 void pmu_enable(void);
 void pmu_interrupt_enable(cpuid_t cpu_id);
 void pmu_interrupt_disable(cpuid_t cpu_id);

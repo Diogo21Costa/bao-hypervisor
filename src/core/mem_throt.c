@@ -36,10 +36,8 @@ void mem_throt_period_timer_callback(irqid_t int_id)
 
     timer_disable();
     events_cntr_disable(state->counter_id);
-    timer_reschedule_interrupt(state->period_counts);
     mem_throt_rearm_counter(state);
     state->throttled = false;
-    timer_enable();
 }
 
 void mem_throt_event_overflow_callback(irqid_t int_id)
@@ -49,8 +47,11 @@ void mem_throt_event_overflow_callback(irqid_t int_id)
 
     events_cntr_disable(state->counter_id);
     events_cntr_irq_disable(state->counter_id);
-    // mem_throt_rearm_counter(state);
-    // cpu_standby();
+    state->throttled = true;
+    timer_disable();
+    timer_reschedule_interrupt(state->period_counts);
+    timer_enable();
+    cpu_standby();
 }
 
 // void mem_throt_resume(void)
@@ -71,7 +72,8 @@ void mem_throt_timer_init(irq_handler_t handler)
     mem_throt_t* state = mem_throt_get_state();
 
     timer_define_irq_callback(handler);
-    state->period_counts = timer_init(state->period_us);
+    state->period_counts = timer_reschedule_interrupt_us(state->period_us);
+    timer_disable();
 }
 
 void mem_throt_events_init(events_enum event, unsigned long budget, irq_handler_t handler)
@@ -105,6 +107,6 @@ void mem_throt_init(unsigned long budget, uint64_t period_us)
     state->period_us = period_us;
 
     mem_throt_timer_init(mem_throt_period_timer_callback);
-    mem_throt_events_init(mem_access, state->budget, mem_throt_event_overflow_callback);
+    mem_throt_events_init(external_mem_request, state->budget, mem_throt_event_overflow_callback);
     state->initialized = true;
 }

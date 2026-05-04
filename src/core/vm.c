@@ -12,6 +12,31 @@
 #include <objpool.h>
 #include <list.h>
 #include <mem_throt.h>
+#include <events.h>
+
+#define MEM_THROT_PMU_COUNTERS 1UL
+
+static inline bool vm_mem_throt_enabled(const struct vm_config* vm_config)
+{
+    return (vm_config->mem_throth.budget > 0U) && (vm_config->mem_throth.period_us > 0U);
+}
+
+static inline size_t vm_profiler_reserved_counters(void)
+{
+#ifdef CONFIG_PROFILER
+    if (config.en_out_of_core_profiler && (cpu()->id < config.out_of_core_profiler.num_target_cpus)) {
+        return config.out_of_core_profiler.num_profile_events;
+    }
+#endif
+    return 0U;
+}
+
+static inline void vm_configure_pmu_counter_partition(const struct vm_config* vm_config)
+{
+    size_t mem_throt_reserved = vm_mem_throt_enabled(vm_config) ? MEM_THROT_PMU_COUNTERS : 0U;
+    size_t profiler_reserved = vm_profiler_reserved_counters();
+    events_configure_counter_partition(mem_throt_reserved, profiler_reserved);
+}
 
 static void vm_master_init(struct vm* vm, const struct vm_config* vm_config, vmid_t vm_id)
 {
@@ -346,7 +371,10 @@ struct vm* vm_init(struct vm_allocation* vm_alloc, struct cpu_synctoken* vm_init
         vm_init_remio(vm, vm_config);
     }
 
-    mem_throt_init(vm_config->mem_throth.budget, vm_config->mem_throth.period_us);
+    vm_configure_pmu_counter_partition(vm_config);
+    if (vm_mem_throt_enabled(vm_config)) {
+        mem_throt_init(vm_config->mem_throth.budget, vm_config->mem_throth.period_us);
+    }
     cpu_sync_and_clear_msgs(&vm->sync);
 
     return vm;
